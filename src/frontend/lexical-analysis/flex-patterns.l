@@ -17,7 +17,7 @@
 %x COMMENT
 
 /* Patrones reutilizables. */
-digit			[0-9]
+varname         [[:alpha:]_][[:alnum:]_]{0,62}
 endline			[\n]
 whitespace		[ \f\n\r\t\v]
 
@@ -28,11 +28,11 @@ whitespace		[ \f\n\r\t\v]
 <COMMENT>{endline}+							{ IgnoredPatternAction(yytext, yyleng); }
 <COMMENT>"*/"								{ EndCommentPatternAction(); BEGIN(INITIAL); }
 
-"entity"                                    { return ENTITY; }
-"{"                                         { return OPEN_CURLY_BRACKETS; }
-"}"                                         { return CLOSE_CURLY_BRACKETS; }
+"entity"                                    { return EntityPatternAction(); }
+"{"                                         { return OpenCurlyBracketsPatternAction(); }
+"}"                                         { return CloseCurlyBracketsPatternAction(); }
 
-[[:alpha:]_][[:alnum:]_]*                   { return VARNAME; }
+{varname}                                   { return VarnamePatternAction(yytext, yyleng); }
 
 {whitespace}+								{ IgnoredPatternAction(yytext, yyleng); }
 

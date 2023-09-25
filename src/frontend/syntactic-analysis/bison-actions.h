@@ -1,8 +1,8 @@
 #ifndef BISON_ACTIONS_HEADER
 #define BISON_ACTIONS_HEADER
 
-#include "../../backend/support/shared.h"
 #include "../../backend/semantic-analysis/abstract-syntax-tree.h"
+#include "../../backend/support/shared.h"
 
 /**
  * Se definen las acciones a ejecutar sobre cada regla de producción de la
@@ -11,21 +11,14 @@
  * abstracta (i.e., el AST).
  */
 
-// Programa.
-int ProgramGrammarAction(const int value);
+// Program
+Program ProgramGrammarAction(StatementSequence* statementSequence);
 
-// Expresión.
-int AdditionExpressionGrammarAction(const int leftValue, const int rightValue);
-int SubtractionExpressionGrammarAction(const int leftValue, const int rightValue);
-int MultiplicationExpressionGrammarAction(const int leftValue, const int rightValue);
-int DivisionExpressionGrammarAction(const int leftValue, const int rightValue);
-int FactorExpressionGrammarAction(const int value);
+// Statement sequence
+StatementSequence* StatementSequenceGrammarAction(Statement statement, StatementSequence* next);
 
-// Factores.
-int ExpressionFactorGrammarAction(const int value);
-int ConstantFactorGrammarAction(const int value);
-
-// Constantes.
-int IntegerConstantGrammarAction(const int value);
+// Statements
+Statement EntityStatementGrammarAction(Entity entity);
+Entity EntityGrammarAction(const char name[64]);
 
 #endif

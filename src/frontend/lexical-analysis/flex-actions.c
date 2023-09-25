@@ -31,6 +31,32 @@ void BeginCommentPatternAction() { LogDebug("[Flex] [COMMENT] BeginCommentPatter
 
 void EndCommentPatternAction() { LogDebug("[Flex] [COMMENT] EndCommentPatternAction.............................."); }
 
+token EntityPatternAction() {
+    LogDebug("[Flex] EntityPatternAction: 'entity'.");
+    yylval.token = ENTITY_KEYWORD;
+    return ENTITY_KEYWORD;
+}
+
+token OpenCurlyBracketsPatternAction() {
+    LogDebug("[Flex] OpenCurlyBracketsPatternAction: '{'.");
+    yylval.token = OPEN_CURLY_BRACKETS;
+    return OPEN_CURLY_BRACKETS;
+}
+
+token CloseCurlyBracketsPatternAction() {
+    LogDebug("[Flex] CloseCurlyBracketsPatternAction: '}'.");
+    yylval.token = CLOSE_CURLY_BRACKETS;
+    return CLOSE_CURLY_BRACKETS;
+}
+
+token VarnamePatternAction(const char *lexeme, const int length) {
+    char *lexemeCopy = copyLexeme(lexeme, length);
+    LogDebug("[Flex] VarnamePatternAction: '%s' (length = %d).", lexemeCopy, length);
+    strncpy(yylval.varname, lexemeCopy, 64);
+    free(lexemeCopy);
+    return VARNAME;
+}
+
 token UnknownPatternAction(const char *lexeme, const int length) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] UnknownPatternAction: '%s' (length = %d).", lexemeCopy, length);
