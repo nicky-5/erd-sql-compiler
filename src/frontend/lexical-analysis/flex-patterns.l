@@ -28,15 +28,11 @@ whitespace		[ \f\n\r\t\v]
 <COMMENT>{endline}+							{ IgnoredPatternAction(yytext, yyleng); }
 <COMMENT>"*/"								{ EndCommentPatternAction(); BEGIN(INITIAL); }
 
-"+"											{ return AdditionOperatorPatternAction(yytext); }
-"-"											{ return SubtractionOperatorPatternAction(yytext); }
-"*"											{ return MultiplicationOperatorPatternAction(yytext); }
-"/"											{ return DivisionOperatorPatternAction(yytext); }
+"entity"                                    { return ENTITY; }
+"{"                                         { return OPEN_CURLY_BRACKETS; }
+"}"                                         { return CLOSE_CURLY_BRACKETS; }
 
-"("											{ return OpenParenthesisPatternAction(yytext); }
-")"											{ return CloseParenthesisPatternAction(yytext); }
-
-{digit}+									{ return IntegerPatternAction(yytext, yyleng); }
+[[:alpha:]_][[:alnum:]_]*                   { return VARNAME; }
 
 {whitespace}+								{ IgnoredPatternAction(yytext, yyleng); }
 
