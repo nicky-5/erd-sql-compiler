@@ -31,10 +31,19 @@ void BeginCommentPatternAction() { LogDebug("[Flex] [COMMENT] BeginCommentPatter
 
 void EndCommentPatternAction() { LogDebug("[Flex] [COMMENT] EndCommentPatternAction.............................."); }
 
-token EntityPatternAction() {
-    LogDebug("[Flex] EntityPatternAction: 'entity'.");
+token EntityKeywordPatternAction() {
+    LogDebug("[Flex] EntityKeywordPatternAction: 'entity'.");
     yylval.token = ENTITY_KEYWORD;
     return ENTITY_KEYWORD;
+}
+
+token AttributeTypePatternAction(const char *lexeme, const int length, AttributeType type) {
+    char *lexemeCopy = copyLexeme(lexeme, length);
+    LogDebug("[Flex] AttributeTypePatternAction: '%s'.", lexemeCopy);
+    free(lexemeCopy);
+    yylval.token = ATTRIBUTE_TYPE;
+    yylval.attributeType = type;
+    return ATTRIBUTE_TYPE;
 }
 
 token OpenCurlyBracketsPatternAction() {
@@ -47,6 +56,18 @@ token CloseCurlyBracketsPatternAction() {
     LogDebug("[Flex] CloseCurlyBracketsPatternAction: '}'.");
     yylval.token = CLOSE_CURLY_BRACKETS;
     return CLOSE_CURLY_BRACKETS;
+}
+
+token ColonPatternAction() {
+    LogDebug("[Flex] ColonPatternAction: ':'.");
+    yylval.token = COLON;
+    return COLON;
+}
+
+token CommaPatternAction() {
+    LogDebug("[Flex] CommaPatternAction: ','.");
+    yylval.token = COMMA;
+    return COMMA;
 }
 
 token VarnamePatternAction(const char *lexeme, const int length) {

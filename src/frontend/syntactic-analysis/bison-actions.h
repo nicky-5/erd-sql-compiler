@@ -12,13 +12,19 @@
  */
 
 // Program
-Program ProgramGrammarAction(StatementSequence* statementSequence);
+Program ProgramGrammarAction(StatementSequence* statements);
 
-// Statement sequence
+// Sequences
 StatementSequence* StatementSequenceGrammarAction(Statement statement, StatementSequence* next);
+AttributeSequence* AttributeSequenceGrammarAction(Attribute attribute, AttributeSequence* next);
 
 // Statements
 Statement EntityStatementGrammarAction(Entity entity);
-Entity EntityGrammarAction(const char name[64]);
+
+// Statement variants
+Entity EntityGrammarAction(const char name[64], AttributeSequence* attributes);
+
+// Attributes
+Attribute AttributeGrammarAction(const char name[64], AttributeType type);
 
 #endif

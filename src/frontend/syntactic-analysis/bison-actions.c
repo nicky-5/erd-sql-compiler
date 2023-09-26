@@ -62,17 +62,34 @@ StatementSequence* StatementSequenceGrammarAction(Statement statement, Statement
     return sequence;
 }
 
+AttributeSequence* AttributeSequenceGrammarAction(Attribute attribute, AttributeSequence* next) {
+    LogDebug("[Bison] AttributeSequenceGrammarAction");
+    AttributeSequence* sequence = malloc(sizeof(AttributeSequence));
+    sequence->attribute = attribute;
+    sequence->next = next;
+    return sequence;
+}
+
 Statement EntityStatementGrammarAction(Entity entity) {
     LogDebug("[Bison] EntityStatementGrammarAction");
     Statement statement;
     statement.type = ENTITY;
-    statement.data.entity = entity;
+    statement.variant.entity = entity;
     return statement;
 }
 
-Entity EntityGrammarAction(const char name[64]) {
+Entity EntityGrammarAction(const char name[64], AttributeSequence* attributes) {
     LogDebug("[Bison] EntityGrammarAction(%s)", name);
     Entity entity;
     strncpy(entity.name, name, 64);
+    entity.attributes = attributes;
     return entity;
+}
+
+Attribute AttributeGrammarAction(const char name[64], AttributeType type) {
+    LogDebug("[Bison] AttributeGrammarAction(%s)", name);
+    Attribute attribute;
+    strncpy(attribute.name, name, 64);
+    attribute.type = type;
+    return attribute;
 }

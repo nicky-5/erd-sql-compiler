@@ -28,9 +28,26 @@ whitespace		[ \f\n\r\t\v]
 <COMMENT>{endline}+							{ IgnoredPatternAction(yytext, yyleng); }
 <COMMENT>"*/"								{ EndCommentPatternAction(); BEGIN(INITIAL); }
 
-"entity"                                    { return EntityPatternAction(); }
+"entity"                                    { return EntityKeywordPatternAction(); }
+
+"int"                                       { return AttributeTypePatternAction(yytext, yyleng, INT); }
+"integer"                                   { return AttributeTypePatternAction(yytext, yyleng, INT); }
+"float"                                     { return AttributeTypePatternAction(yytext, yyleng, FLOAT); }
+"double"                                    { return AttributeTypePatternAction(yytext, yyleng, DOUBLE); }
+
+"text"                                      { return AttributeTypePatternAction(yytext, yyleng, TEXT); }
+"char"                                      { return AttributeTypePatternAction(yytext, yyleng, CHAR); }
+
+"bool"                                      { return AttributeTypePatternAction(yytext, yyleng, BOOL); }
+"boolean"                                   { return AttributeTypePatternAction(yytext, yyleng, BOOL); }
+
+"date"                                      { return AttributeTypePatternAction(yytext, yyleng, DATE); }
+"time"                                      { return AttributeTypePatternAction(yytext, yyleng, TIME); }
+
 "{"                                         { return OpenCurlyBracketsPatternAction(); }
 "}"                                         { return CloseCurlyBracketsPatternAction(); }
+":"                                         { return ColonPatternAction(); }
+","                                         { return CommaPatternAction(); }
 
 {varname}                                   { return VarnamePatternAction(yytext, yyleng); }
 
