@@ -48,6 +48,7 @@ whitespace		[ \f\n\r\t\v]
 "}"                                         { return CloseCurlyBracketsPatternAction(); }
 ":"                                         { return ColonPatternAction(); }
 ","                                         { return CommaPatternAction(); }
+"?"                                         { return QuestionMarkPatternAction(); }
 
 {varname}                                   { return VarnamePatternAction(yytext, yyleng); }
 

@@ -35,6 +35,7 @@ token OpenCurlyBracketsPatternAction();
 token CloseCurlyBracketsPatternAction();
 token ColonPatternAction();
 token CommaPatternAction();
+token QuestionMarkPatternAction();
 
 // Values
 token VarnamePatternAction(const char* lexeme, const int length);

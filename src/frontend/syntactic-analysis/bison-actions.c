@@ -86,10 +86,11 @@ Entity EntityGrammarAction(const char name[64], AttributeSequence* attributes) {
     return entity;
 }
 
-Attribute AttributeGrammarAction(const char name[64], AttributeType type) {
+Attribute AttributeGrammarAction(const char name[64], AttributeType type, AttributeModifier modifier) {
     LogDebug("[Bison] AttributeGrammarAction(%s)", name);
     Attribute attribute;
     strncpy(attribute.name, name, 64);
     attribute.type = type;
+    attribute.modifier = modifier;
     return attribute;
 }

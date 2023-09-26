@@ -25,6 +25,6 @@ Statement EntityStatementGrammarAction(Entity entity);
 Entity EntityGrammarAction(const char name[64], AttributeSequence* attributes);
 
 // Attributes
-Attribute AttributeGrammarAction(const char name[64], AttributeType type);
+Attribute AttributeGrammarAction(const char name[64], AttributeType type, AttributeModifier modifier);
 
 #endif

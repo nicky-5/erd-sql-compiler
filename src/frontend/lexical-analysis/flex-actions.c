@@ -70,6 +70,12 @@ token CommaPatternAction() {
     return COMMA;
 }
 
+token QuestionMarkPatternAction() {
+    LogDebug("[Flex] QuestionMarkPatternAction: '?'.");
+    yylval.token = QUESTION_MARK;
+    return QUESTION_MARK;
+}
+
 token VarnamePatternAction(const char *lexeme, const int length) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] VarnamePatternAction: '%s' (length = %d).", lexemeCopy, length);

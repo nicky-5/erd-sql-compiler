@@ -31,7 +31,18 @@ const char* getTypeName(AttributeType type) {
 void LogDebugAttributes(AttributeSequence* sequence) {
     while (sequence != NULL) {
         Attribute attribute = sequence->attribute;
-        LogDebug("[Generator]     \"%s\" %s,", attribute.name, getTypeName(attribute.type));
+        LogRaw("    \"%s\" %s", attribute.name, getTypeName(attribute.type));
+
+        if (attribute.modifier == NOTNULL) {
+            LogRaw(" NOT NULL");
+        }
+
+        if (sequence->next != NULL) {
+            LogRaw(",");
+        }
+
+        LogRaw("\n");
+
         sequence = sequence->next;
     }
 }
@@ -43,9 +54,9 @@ void Generator(Program* program) {
         switch (statement.type) {
             case ENTITY:
                 Entity entity = statement.variant.entity;
-                LogDebug("[Generator] CREATE TABLE \"%s\" (", entity.name);
+                LogRaw("CREATE TABLE \"%s\" (\n", entity.name);
                 LogDebugAttributes(entity.attributes);
-                LogDebug("[Generator] );");
+                LogRaw(");\n");
                 break;
         }
         sequence = sequence->next;

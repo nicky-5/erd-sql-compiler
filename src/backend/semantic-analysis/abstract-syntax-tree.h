@@ -5,10 +5,12 @@ typedef struct AttributeSequence AttributeSequence;
 typedef struct StatementSequence StatementSequence;
 
 typedef enum AttributeType { INT, FLOAT, DOUBLE, TEXT, CHAR, BOOL, DATE, TIME } AttributeType;
+typedef enum AttributeModifier { NOTNULL, NULLABLE } AttributeModifier;
 
 typedef struct Attribute {
     char name[64];
     AttributeType type;
+    AttributeModifier modifier;
 } Attribute;
 
 struct AttributeSequence {

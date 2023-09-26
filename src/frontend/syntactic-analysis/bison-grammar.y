@@ -44,6 +44,7 @@
 %token <token> CLOSE_CURLY_BRACKETS
 %token <token> COLON
 %token <token> COMMA
+%token <token> QUESTION_MARK
 
 // Values
 %token <varname> VARNAME
@@ -91,7 +92,8 @@ attributeSequence
 	;
 
 attribute
-	: VARNAME COLON ATTRIBUTE_TYPE														{ $$ = AttributeGrammarAction($1, $3); }
+	: VARNAME COLON ATTRIBUTE_TYPE														{ $$ = AttributeGrammarAction($1, $3, NOTNULL); }
+	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK										{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
 	;
 
 %%
