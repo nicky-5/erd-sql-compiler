@@ -31,14 +31,15 @@ extern int yylex(void);
 extern int yyparse(void);
 
 // Emular tipo "boolean".
-typedef enum {
-
-    false = 0,
-    true = 1
-} boolean;
+typedef enum { false = 0, true = 1 } boolean;
 
 // El tipo de los tokens emitidos por Flex.
 typedef int token;
+
+typedef struct PrimaryKeyFIFO {
+    PrimaryKeyNode* first;
+    PrimaryKeyNode* last;
+} PrimaryKeyFIFO;
 
 // Estado global de toda la aplicación.
 typedef struct {
@@ -55,7 +56,7 @@ typedef struct {
     // Agregar una pila para manipular scopes.
     // Agregar una tabla de símbolos.
     // ...
-
+    PrimaryKeyFIFO primaryKeyFIFO;
 } CompilerState;
 
 // El estado se define e inicializa en el archivo "main.c".

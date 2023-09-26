@@ -28,16 +28,31 @@ const char* getTypeName(AttributeType type) {
     return NULL;
 }
 
-void LogDebugAttributes(AttributeSequence* sequence) {
+void LogRawPrimaryKeys(PrimaryKeyNode* primaryKeys) {
+    if (primaryKeys != NULL) {
+        LogRaw("    PRIMARY KEY (");
+        while (primaryKeys != NULL) {
+            LogRaw("%s", primaryKeys->name);
+            if (primaryKeys->next != NULL) {
+                LogRaw(", ");
+            }
+
+            primaryKeys = primaryKeys->next;
+        }
+        LogRaw(")\n");
+    }
+}
+
+void LogRawAttributes(AttributeSequence* sequence, PrimaryKeyNode* primaryKeys) {
     while (sequence != NULL) {
         Attribute attribute = sequence->attribute;
         LogRaw("    \"%s\" %s", attribute.name, getTypeName(attribute.type));
 
-        if (attribute.modifier == NOTNULL) {
+        if (attribute.modifier != NULLABLE) {
             LogRaw(" NOT NULL");
         }
 
-        if (sequence->next != NULL) {
+        if (sequence->next != NULL || primaryKeys != NULL) {
             LogRaw(",");
         }
 
@@ -45,6 +60,7 @@ void LogDebugAttributes(AttributeSequence* sequence) {
 
         sequence = sequence->next;
     }
+    LogRawPrimaryKeys(primaryKeys);
 }
 
 void Generator(Program* program) {
@@ -55,7 +71,7 @@ void Generator(Program* program) {
             case ENTITY:
                 Entity entity = statement.variant.entity;
                 LogRaw("CREATE TABLE \"%s\" (\n", entity.name);
-                LogDebugAttributes(entity.attributes);
+                LogRawAttributes(entity.attributes, entity.primaryKeys);
                 LogRaw(");\n");
                 break;
         }

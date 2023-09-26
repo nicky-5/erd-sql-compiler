@@ -37,6 +37,12 @@ token EntityKeywordPatternAction() {
     return ENTITY_KEYWORD;
 }
 
+token PrimaryKeyKeywordPatternAction() {
+    LogDebug("[Flex] PrimaryKeyKeywordPatternAction: 'PK'.");
+    yylval.token = PK_KEYWORD;
+    return PK_KEYWORD;
+}
+
 token AttributeTypePatternAction(const char *lexeme, const int length, AttributeType type) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] AttributeTypePatternAction: '%s'.", lexemeCopy);
@@ -79,7 +85,7 @@ token QuestionMarkPatternAction() {
 token VarnamePatternAction(const char *lexeme, const int length) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] VarnamePatternAction: '%s' (length = %d).", lexemeCopy, length);
-    strncpy(yylval.varname, lexemeCopy, 64);
+    strncpy(yylval.varname, lexemeCopy, NAMEDATALEN);
     free(lexemeCopy);
     return VARNAME;
 }

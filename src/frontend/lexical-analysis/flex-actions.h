@@ -26,6 +26,7 @@ void EndCommentPatternAction();
 // Patrones terminales del lenguaje diseñado.
 // Keywords
 token EntityKeywordPatternAction();
+token PrimaryKeyKeywordPatternAction();
 
 // Types
 token AttributeTypePatternAction(const char* lexeme, const int length, AttributeType type);

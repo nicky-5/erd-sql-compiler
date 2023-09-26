@@ -27,6 +27,27 @@ void yyerror(const char* string) {
     LogErrorRaw("' (length = %d, linea %d).\n\n", yyleng, yylineno);
 }
 
+void pushPrimaryKey(const char name[NAMEDATALEN]) {
+    PrimaryKeyNode* keyNode = malloc(sizeof(PrimaryKeyNode));
+    strncpy(keyNode->name, name, NAMEDATALEN);
+    keyNode->next = NULL;
+
+    if (state.primaryKeyFIFO.last == NULL) {
+        state.primaryKeyFIFO.first = keyNode;
+        state.primaryKeyFIFO.last = keyNode;
+    } else {
+        state.primaryKeyFIFO.last->next = keyNode;
+        state.primaryKeyFIFO.last = keyNode;
+    }
+}
+
+PrimaryKeyNode* getPrimaryKeys() {
+    PrimaryKeyNode* first = state.primaryKeyFIFO.first;
+    state.primaryKeyFIFO.first = NULL;
+    state.primaryKeyFIFO.last = NULL;
+    return first;
+}
+
 /**
  * Esta acción se corresponde con el no-terminal que representa el símbolo
  * inicial de la gramática, y por ende, es el último en ser ejecutado, lo que
@@ -78,18 +99,24 @@ Statement EntityStatementGrammarAction(Entity entity) {
     return statement;
 }
 
-Entity EntityGrammarAction(const char name[64], AttributeSequence* attributes) {
+Entity EntityGrammarAction(const char name[NAMEDATALEN], AttributeSequence* attributes) {
     LogDebug("[Bison] EntityGrammarAction(%s)", name);
     Entity entity;
-    strncpy(entity.name, name, 64);
+    strncpy(entity.name, name, NAMEDATALEN);
     entity.attributes = attributes;
+    entity.primaryKeys = getPrimaryKeys();
     return entity;
 }
 
-Attribute AttributeGrammarAction(const char name[64], AttributeType type, AttributeModifier modifier) {
+Attribute AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier) {
     LogDebug("[Bison] AttributeGrammarAction(%s)", name);
+
+    if (modifier == PK) {
+        pushPrimaryKey(name);
+    }
+
     Attribute attribute;
-    strncpy(attribute.name, name, 64);
+    strncpy(attribute.name, name, NAMEDATALEN);
     attribute.type = type;
     attribute.modifier = modifier;
     return attribute;

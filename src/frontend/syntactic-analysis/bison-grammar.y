@@ -45,6 +45,7 @@
 %token <token> COLON
 %token <token> COMMA
 %token <token> QUESTION_MARK
+%token <token> PK_KEYWORD
 
 // Values
 %token <varname> VARNAME
@@ -94,6 +95,7 @@ attributeSequence
 attribute
 	: VARNAME COLON ATTRIBUTE_TYPE														{ $$ = AttributeGrammarAction($1, $3, NOTNULL); }
 	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK										{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
+	| VARNAME COLON ATTRIBUTE_TYPE PK_KEYWORD											{ $$ = AttributeGrammarAction($1, $3, PK); }
 	;
 
 %%
