@@ -77,16 +77,78 @@ void LogRawRelationKeys(AttributeList* node, const char* name) {
     }
 }
 
-void LogRawRelationAttributes(AttributeList* node, const char name[NAMEDATALEN]) {
+void LogRawRelationAttributes(AttributeList* node) {
     while (node != NULL) {
         Attribute* attribute = node->attribute;
         if (attribute->type == REFERENCE) {
-            LogRawRelationKeys(attribute->data.reference->attributeList, name);
+            LogRawRelationKeys(attribute->data.reference->attributeList, attribute->name);
         } else {
             LogRaw("    \"%s\" %s", attribute->name, getTypeName(attribute->type));
         }
 
         node = node->next;
+    }
+}
+
+void LogRawForeignKey(AttributeList* list, const char name[NAMEDATALEN], const char entityName[NAMEDATALEN]) {
+    boolean first = true;
+    AttributeList* node = list;
+    while (node != NULL) {
+        Attribute* attribute = node->attribute;
+        if (attribute->data.modifier == KEY) {
+            if (first) {
+                LogRaw("    FOREIGN KEY(\"%s$%s\"", name, attribute->name);
+                first = false;
+            } else {
+                LogRaw(", \"%s$%s\"", name, attribute->name);
+            }
+        }
+        node = node->next;
+    }
+
+    if (!first) {
+        LogRaw(") REFERENCES \"%s\"(", entityName);
+    }
+
+    first = true;
+    node = list;
+    while (node != NULL) {
+        Attribute* attribute = node->attribute;
+        if (attribute->data.modifier == KEY) {
+            if (first) {
+                LogRaw("\"%s\"", attribute->name);
+                first = false;
+            } else {
+                LogRaw(", \"%s\"", attribute->name);
+            }
+        }
+        node = node->next;
+    }
+
+    if (!first) {
+        LogRaw(")");
+    }
+}
+
+void LogRawForeignKeyList(AttributeList* node) {
+    boolean first = true;
+    while (node != NULL) {
+        Attribute* attribute = node->attribute;
+        if (attribute->type == REFERENCE) {
+            const Object* reference = attribute->data.reference;
+            if (first) {
+                first = false;
+            } else {
+                LogRaw(",\n");
+            }
+
+            LogRawForeignKey(reference->attributeList, attribute->name, reference->name);
+        }
+
+        node = node->next;
+    }
+    if (!first) {
+        LogRaw("\n");
     }
 }
 
@@ -101,10 +163,11 @@ void Generator(Program* program) {
                 LogRawKeys(object->attributeList);
                 break;
             case RELATION:
-                LogRawRelationAttributes(object->attributeList, object->name);
+                LogRawRelationAttributes(object->attributeList);
+                LogRawForeignKeyList(object->attributeList);
                 break;
         }
-        LogRaw(");\n");
+        LogRaw(");\n\n");
         List = List->next;
     }
 }
