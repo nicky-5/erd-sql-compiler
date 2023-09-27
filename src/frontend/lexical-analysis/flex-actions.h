@@ -27,9 +27,11 @@ void EndCommentPatternAction();
 // Keywords
 token EntityKeywordPatternAction();
 token PrimaryKeyKeywordPatternAction();
+token RelationKeywordPatternAction();
 
 // Types
 token AttributeTypePatternAction(const char* lexeme, const int length, AttributeType type);
+token EntityTypePatternAction(const char* lexeme, const int length);
 
 // Symbols
 token OpenCurlyBracketsPatternAction();

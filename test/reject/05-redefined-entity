@@ -1,0 +1,9 @@
+entity Name {
+    a: int,
+    b: int
+}
+
+entity Name {
+    x: int,
+    y: int
+}

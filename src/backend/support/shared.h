@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "../semantic-analysis/abstract-syntax-tree.h"
+#include "../semantic-analysis/abstract-semantic-graph.h"
 
 // Descriptor del archivo de entrada que utiliza Bison.
 extern FILE* yyin;
@@ -36,28 +36,43 @@ typedef enum { false = 0, true = 1 } boolean;
 // El tipo de los tokens emitidos por Flex.
 typedef int token;
 
-typedef struct PrimaryKeyFIFO {
-    PrimaryKeyNode* first;
-    PrimaryKeyNode* last;
-} PrimaryKeyFIFO;
+typedef struct NameQueue {
+    NameList* first;
+    NameList* last;
+} NameQueue;
 
 // Estado global de toda la aplicación.
 typedef struct {
     // Indica si la compilación tuvo problemas hasta el momento.
     boolean succeed;
 
-    // Indica el resultado de la compilación (para la calculadora).
-    // int result;
-
     // El nodo raíz del AST (se usará cuando se implemente el backend).
-    Program program;
+    Program* program;
 
     // Agregar lo que sea necesario para el compilador.
     // Agregar una pila para manipular scopes.
     // Agregar una tabla de símbolos.
     // ...
-    PrimaryKeyFIFO primaryKeyFIFO;
+    NameQueue scopeKeys;
+
+    EntityRefList* entityRefList;
+    RelationRefList* relationRefList;
+
+    NameList* scopedNames;
 } CompilerState;
+
+void addScopedKey(const char name[NAMEDATALEN]);
+NameList* getScopedKeys();
+
+void addScopedName(const char name[NAMEDATALEN]);
+boolean isNameInScope(const char name[NAMEDATALEN]);
+void clearScopedNames();
+
+void addEntity(const Entity* entityRef);
+const Entity* findEntity(const char name[NAMEDATALEN]);
+
+void addRelation(const Relation* relationRef);
+const Relation* findRelation(const char name[NAMEDATALEN]);
 
 // El estado se define e inicializa en el archivo "main.c".
 extern CompilerState state;

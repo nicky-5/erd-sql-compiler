@@ -16,16 +16,20 @@
 	*/
 
 	// No-terminales (frontend).
-	Program program;
+	Program* program;
 
-	StatementSequence* statementSequence;
-	Statement statement;
+	StatementList* statementList;
+	Statement* statement;
 
-	Entity entity;
+	Entity* entity;
+	Relation* relation;
 
-	AttributeSequence* attributeSequence;
-	Attribute attribute;
+	AttributeList* attributeList;
+	Attribute* attribute;
 	AttributeType attributeType;
+
+	RelationEntityList* relationEntityList;
+	RelationEntity* relationEntity;
 
 	// Terminales.
 	token token;
@@ -38,6 +42,7 @@
 // IDs y tipos de los tokens terminales generados desde Flex.
 // Keywords
 %token <token> ENTITY_KEYWORD
+%token <token> RELATION_KEYWORD
 
 // Symbols
 %token <token> OPEN_CURLY_BRACKETS
@@ -50,17 +55,22 @@
 // Values
 %token <varname> VARNAME
 %token <attributeType> ATTRIBUTE_TYPE
+%token <varname> ENTITY_TYPE
 
 // Tipos de dato para los no-terminales generados desde Bison.
 %type <program> program
 
-%type <statementSequence> statementSequence
+%type <statementList> statementList
 %type <statement> statement
 
 %type <entity> entity
+%type <relation> relation
 
-%type <attributeSequence> attributeSequence
+%type <attributeList> attributeList
 %type <attribute> attribute
+
+%type <relationEntityList> relationEntityList
+%type <relationEntity> relationEntity
 
 // Reglas de asociatividad y precedencia (de menor a mayor).
 
@@ -71,31 +81,49 @@
 
 program
 	: /* empty program */																{ $$ = ProgramGrammarAction(NULL); }
-	| statementSequence																	{ $$ = ProgramGrammarAction($1); }
+	| statementList																		{ $$ = ProgramGrammarAction($1); }
 	;
 
-statementSequence
-	: statement																			{ $$ = StatementSequenceGrammarAction($1, NULL); }
-	| statement statementSequence														{ $$ = StatementSequenceGrammarAction($1, $2); }
+statementList
+	: statement																			{ $$ = StatementListGrammarAction($1, NULL); }
+	| statement statementList															{ $$ = StatementListGrammarAction($1, $2); }
 	;
 
 statement
 	: entity																			{ $$ = EntityStatementGrammarAction($1); }
+	| relation																			{ $$ = RelationStatementGrammarAction($1); }
 	;
 
 entity
-	: ENTITY_KEYWORD VARNAME OPEN_CURLY_BRACKETS attributeSequence CLOSE_CURLY_BRACKETS	{ $$ = EntityGrammarAction($2, $4); }
+	: ENTITY_KEYWORD VARNAME OPEN_CURLY_BRACKETS 
+	  attributeList 
+	  CLOSE_CURLY_BRACKETS																{ $$ = EntityGrammarAction($2, $4); }
 	;
 
-attributeSequence
-	: attribute																			{ $$ = AttributeSequenceGrammarAction($1, NULL); }
-	| attribute COMMA attributeSequence													{ $$ = AttributeSequenceGrammarAction($1, $3); }
+attributeList
+	: attribute																			{ $$ = AttributeListGrammarAction($1, NULL); }
+	| attribute COMMA attributeList														{ $$ = AttributeListGrammarAction($1, $3); }
 	;
 
 attribute
 	: VARNAME COLON ATTRIBUTE_TYPE														{ $$ = AttributeGrammarAction($1, $3, NOTNULL); }
 	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK										{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
 	| VARNAME COLON ATTRIBUTE_TYPE PK_KEYWORD											{ $$ = AttributeGrammarAction($1, $3, PK); }
+	;
+
+relation
+	: RELATION_KEYWORD VARNAME OPEN_CURLY_BRACKETS
+	  relationEntityList 
+	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($2, $4); }
+	;
+
+relationEntityList
+	: relationEntity																	{ $$ = RelationEntityListGrammarAction($1, NULL); }
+	| relationEntity COMMA relationEntityList											{ $$ = RelationEntityListGrammarAction($1, $3); }
+	;
+
+relationEntity
+	: VARNAME COLON ENTITY_TYPE															{ $$ = RelationEntityGrammarAction($1, $3); }
 	;
 
 %%

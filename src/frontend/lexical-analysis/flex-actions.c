@@ -43,13 +43,26 @@ token PrimaryKeyKeywordPatternAction() {
     return PK_KEYWORD;
 }
 
+token RelationKeywordPatternAction() {
+    LogDebug("[Flex] RelationKeywordPatternAction: 'relation'.");
+    yylval.token = RELATION_KEYWORD;
+    return RELATION_KEYWORD;
+}
+
 token AttributeTypePatternAction(const char *lexeme, const int length, AttributeType type) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] AttributeTypePatternAction: '%s'.", lexemeCopy);
     free(lexemeCopy);
-    yylval.token = ATTRIBUTE_TYPE;
     yylval.attributeType = type;
     return ATTRIBUTE_TYPE;
+}
+
+token EntityTypePatternAction(const char *lexeme, const int length) {
+    char *lexemeCopy = copyLexeme(lexeme, length);
+    LogDebug("[Flex] EntityTypePatternAction: '%s'.", lexemeCopy);
+    free(lexemeCopy);
+    strncpy(yylval.varname, lexemeCopy + 8, NAMEDATALEN);
+    return ENTITY_TYPE;
 }
 
 token OpenCurlyBracketsPatternAction() {

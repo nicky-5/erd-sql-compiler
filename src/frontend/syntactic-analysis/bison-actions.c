@@ -27,97 +27,140 @@ void yyerror(const char* string) {
     LogErrorRaw("' (length = %d, linea %d).\n\n", yyleng, yylineno);
 }
 
-void pushPrimaryKey(const char name[NAMEDATALEN]) {
-    PrimaryKeyNode* keyNode = malloc(sizeof(PrimaryKeyNode));
-    strncpy(keyNode->name, name, NAMEDATALEN);
-    keyNode->next = NULL;
-
-    if (state.primaryKeyFIFO.last == NULL) {
-        state.primaryKeyFIFO.first = keyNode;
-        state.primaryKeyFIFO.last = keyNode;
-    } else {
-        state.primaryKeyFIFO.last->next = keyNode;
-        state.primaryKeyFIFO.last = keyNode;
-    }
-}
-
-PrimaryKeyNode* getPrimaryKeys() {
-    PrimaryKeyNode* first = state.primaryKeyFIFO.first;
-    state.primaryKeyFIFO.first = NULL;
-    state.primaryKeyFIFO.last = NULL;
-    return first;
-}
-
 /**
  * Esta acción se corresponde con el no-terminal que representa el símbolo
  * inicial de la gramática, y por ende, es el último en ser ejecutado, lo que
  * indica que efectivamente el programa de entrada se pudo generar con esta
  * gramática, o lo que es lo mismo, que el programa pertenece al lenguaje.
  */
-Program ProgramGrammarAction(StatementSequence* statementSequence) {
+Program* ProgramGrammarAction(StatementList* statementList) {
     LogDebug("[Bison] ProgramGrammarAction");
-    /*
-     * "state" es una variable global que almacena el estado del compilador,
-     * cuyo campo "succeed" indica si la compilación fue o no exitosa, la cual
-     * es utilizada en la función "main".
-     */
-    state.succeed = true;
-    /*
-     * Por otro lado, "result" contiene el resultado de aplicar el análisis
-     * sintáctico mediante Bison, y almacenar el nood raíz del AST construido
-     * en esta variable. Para el ejemplo de la calculadora, no hay AST porque
-     * la expresión se computa on-the-fly, y es la razón por la cual esta
-     * variable es un simple entero, en lugar de un nodo.
-     */
-    Program program;
-    program.statementSequence = statementSequence;
+    Program* program = malloc(sizeof(Program));
+    program->statementList = statementList;
     state.program = program;
     return program;
 }
 
-StatementSequence* StatementSequenceGrammarAction(Statement statement, StatementSequence* next) {
-    LogDebug("[Bison] StatementSequenceGrammarAction");
-    StatementSequence* sequence = malloc(sizeof(StatementSequence));
-    sequence->statement = statement;
-    sequence->next = next;
-    return sequence;
+StatementList* StatementListGrammarAction(Statement* statement, StatementList* next) {
+    LogDebug("[Bison] StatementListGrammarAction");
+    StatementList* List = malloc(sizeof(StatementList));
+    List->statement = statement;
+    List->next = next;
+    return List;
 }
 
-AttributeSequence* AttributeSequenceGrammarAction(Attribute attribute, AttributeSequence* next) {
-    LogDebug("[Bison] AttributeSequenceGrammarAction");
-    AttributeSequence* sequence = malloc(sizeof(AttributeSequence));
-    sequence->attribute = attribute;
-    sequence->next = next;
-    return sequence;
+AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* next) {
+    LogDebug("[Bison] AttributeListGrammarAction");
+    AttributeList* List = malloc(sizeof(AttributeList));
+    List->attribute = attribute;
+    List->next = next;
+    return List;
 }
 
-Statement EntityStatementGrammarAction(Entity entity) {
+RelationEntityList* RelationEntityListGrammarAction(RelationEntity* relationEntity, RelationEntityList* next) {
+    LogDebug("[Bison] RelationEntityListGrammarAction");
+    RelationEntityList* node = malloc(sizeof(RelationEntityList));
+    node->relationEntity = relationEntity;
+    node->next = next;
+    return node;
+}
+
+Statement* EntityStatementGrammarAction(Entity* entity) {
+    if (entity == NULL) {
+        return NULL;
+    }
+
     LogDebug("[Bison] EntityStatementGrammarAction");
-    Statement statement;
-    statement.type = ENTITY;
-    statement.variant.entity = entity;
+    Statement* statement = malloc(sizeof(Statement));
+    statement->type = ENTITY;
+    statement->variant.entity = entity;
     return statement;
 }
 
-Entity EntityGrammarAction(const char name[NAMEDATALEN], AttributeSequence* attributes) {
+Statement* RelationStatementGrammarAction(Relation* relation) {
+    if (relation == NULL) {
+        return NULL;
+    }
+
+    LogDebug("[Bison] RelationStatementGrammarAction");
+    Statement* statement = malloc(sizeof(Statement));
+    statement->type = RELATION;
+    statement->variant.relation = relation;
+    return statement;
+}
+
+Entity* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
+    if (findEntity(name) != NULL || findRelation(name) != NULL) {
+        state.succeed = false;
+        LogError("Object redeclaration of name '%s'", name);
+        return NULL;
+    }
+
     LogDebug("[Bison] EntityGrammarAction(%s)", name);
-    Entity entity;
-    strncpy(entity.name, name, NAMEDATALEN);
-    entity.attributes = attributes;
-    entity.primaryKeys = getPrimaryKeys();
+    Entity* entity = malloc(sizeof(Entity));
+    strncpy(entity->name, name, NAMEDATALEN);
+    entity->attributes = attributes;
+    entity->keys = getScopedKeys(&state.scopeKeys);
+    addEntity(entity);
+    clearScopedNames();
     return entity;
 }
 
-Attribute AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier) {
+Relation* RelationGrammarAction(const char name[NAMEDATALEN], RelationEntityList* relationEntityList) {
+    if (findEntity(name) != NULL || findRelation(name) != NULL) {
+        state.succeed = false;
+        LogError("Object redeclaration of name '%s'", name);
+        return NULL;
+    }
+
+    LogDebug("[Bison] RelationGrammarAction(%s)", name);
+    Relation* relation = malloc(sizeof(Relation));
+    strncpy(relation->name, name, NAMEDATALEN);
+    relation->relationEntityList = relationEntityList;
+    addRelation(relation);
+    clearScopedNames();
+    return relation;
+}
+
+Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier) {
+    if (isNameInScope(name)) {
+        state.succeed = false;
+        LogError("Object redeclaration in this scope of name '%s'", name);
+        return NULL;
+    }
+
     LogDebug("[Bison] AttributeGrammarAction(%s)", name);
 
     if (modifier == PK) {
-        pushPrimaryKey(name);
+        addScopedKey(name);
     }
 
-    Attribute attribute;
-    strncpy(attribute.name, name, NAMEDATALEN);
-    attribute.type = type;
-    attribute.modifier = modifier;
+    Attribute* attribute = malloc(sizeof(Attribute));
+    strncpy(attribute->name, name, NAMEDATALEN);
+    attribute->type = type;
+    attribute->modifier = modifier;
+    addScopedName(name);
     return attribute;
+}
+
+RelationEntity* RelationEntityGrammarAction(const char name[NAMEDATALEN], const char entityName[NAMEDATALEN]) {
+    if (isNameInScope(name)) {
+        state.succeed = false;
+        LogError("Object redeclaration in this scope of name '%s'", name);
+        return NULL;
+    }
+
+    const Entity* entityRef = findEntity(entityName);
+    if (entityRef == NULL) {
+        state.succeed = false;
+        LogError("Reference to undefined entity '%s'", name);
+        return NULL;
+    }
+
+    LogDebug("[Bison] RelationEntityGrammarAction(%s)", name);
+    RelationEntity* relationEntity = malloc(sizeof(RelationEntity));
+    strncpy(relationEntity->name, name, NAMEDATALEN);
+    relationEntity->entityRef = entityRef;
+    addScopedName(name);
+    return relationEntity;
 }

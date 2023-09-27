@@ -28,53 +28,53 @@ const char* getTypeName(AttributeType type) {
     return NULL;
 }
 
-void LogRawPrimaryKeys(PrimaryKeyNode* primaryKeys) {
-    if (primaryKeys != NULL) {
+void LogRawPrimaryKeys(NameList* keys) {
+    if (keys != NULL) {
         LogRaw("    PRIMARY KEY (");
-        while (primaryKeys != NULL) {
-            LogRaw("%s", primaryKeys->name);
-            if (primaryKeys->next != NULL) {
+        while (keys != NULL) {
+            LogRaw("%s", keys->name);
+            if (keys->next != NULL) {
                 LogRaw(", ");
             }
 
-            primaryKeys = primaryKeys->next;
+            keys = keys->next;
         }
         LogRaw(")\n");
     }
 }
 
-void LogRawAttributes(AttributeSequence* sequence, PrimaryKeyNode* primaryKeys) {
-    while (sequence != NULL) {
-        Attribute attribute = sequence->attribute;
-        LogRaw("    \"%s\" %s", attribute.name, getTypeName(attribute.type));
+void LogRawAttributes(AttributeList* List, NameList* keys) {
+    while (List != NULL) {
+        Attribute* attribute = List->attribute;
+        LogRaw("    \"%s\" %s", attribute->name, getTypeName(attribute->type));
 
-        if (attribute.modifier != NULLABLE) {
+        if (attribute->modifier != NULLABLE) {
             LogRaw(" NOT NULL");
         }
 
-        if (sequence->next != NULL || primaryKeys != NULL) {
+        if (List->next != NULL || keys != NULL) {
             LogRaw(",");
         }
 
         LogRaw("\n");
 
-        sequence = sequence->next;
+        List = List->next;
     }
-    LogRawPrimaryKeys(primaryKeys);
+    LogRawPrimaryKeys(keys);
 }
 
 void Generator(Program* program) {
-    StatementSequence* sequence = program->statementSequence;
-    while (sequence != NULL) {
-        Statement statement = sequence->statement;
-        switch (statement.type) {
+    StatementList* List = program->statementList;
+    while (List != NULL) {
+        Statement* statement = List->statement;
+        switch (statement->type) {
             case ENTITY:
-                Entity entity = statement.variant.entity;
-                LogRaw("CREATE TABLE \"%s\" (\n", entity.name);
-                LogRawAttributes(entity.attributes, entity.primaryKeys);
+                Entity* entity = statement->variant.entity;
+                LogRaw("CREATE TABLE \"%s\" (\n", entity->name);
+                LogRawAttributes(entity->attributes, entity->keys);
                 LogRaw(");\n");
                 break;
         }
-        sequence = sequence->next;
+        List = List->next;
     }
 }

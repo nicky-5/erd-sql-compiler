@@ -1,7 +1,7 @@
 #ifndef BISON_ACTIONS_HEADER
 #define BISON_ACTIONS_HEADER
 
-#include "../../backend/semantic-analysis/abstract-syntax-tree.h"
+#include "../../backend/semantic-analysis/abstract-semantic-graph.h"
 #include "../../backend/support/shared.h"
 
 /**
@@ -12,19 +12,23 @@
  */
 
 // Program
-Program ProgramGrammarAction(StatementSequence* statements);
+Program* ProgramGrammarAction(StatementList* statements);
 
-// Sequences
-StatementSequence* StatementSequenceGrammarAction(Statement statement, StatementSequence* next);
-AttributeSequence* AttributeSequenceGrammarAction(Attribute attribute, AttributeSequence* next);
+// Lists
+StatementList* StatementListGrammarAction(Statement* statement, StatementList* next);
+AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* next);
+RelationEntityList* RelationEntityListGrammarAction(RelationEntity* relationEntity, RelationEntityList* next);
 
 // Statements
-Statement EntityStatementGrammarAction(Entity entity);
+Statement* EntityStatementGrammarAction(Entity* entity);
+Statement* RelationStatementGrammarAction(Relation* relation);
 
 // Statement variants
-Entity EntityGrammarAction(const char name[NAMEDATALEN], AttributeSequence* attributes);
+Entity* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes);
+Relation* RelationGrammarAction(const char name[NAMEDATALEN], RelationEntityList* relationEntityList);
 
 // Attributes
-Attribute AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier);
+Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier);
+RelationEntity* RelationEntityGrammarAction(const char name[NAMEDATALEN], const char entityName[NAMEDATALEN]);
 
 #endif

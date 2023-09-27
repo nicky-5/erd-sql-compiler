@@ -11,8 +11,7 @@ CompilerState state;
 // Punto de entrada principal del compilador.
 const int main(const int argumentCount, const char** arguments) {
     // Inicializar estado de la aplicación.
-    state.program.statementSequence = NULL;
-    state.succeed = false;
+    state.succeed = true;
 
     // Mostrar parámetros recibidos por consola.
     for (int i = 0; i < argumentCount; ++i) {
@@ -28,7 +27,7 @@ const int main(const int argumentCount, const char** arguments) {
             // inicial de la gramática satisfactoriamente.
             if (state.succeed) {
                 LogInfo("La compilacion fue exitosa.");
-                Generator(&state.program);
+                Generator(state.program);
             } else {
                 LogError("Se produjo un error en la aplicacion.");
                 return -1;

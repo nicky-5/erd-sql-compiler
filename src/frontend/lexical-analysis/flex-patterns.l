@@ -17,7 +17,7 @@
 %x COMMENT
 
 /* Patrones reutilizables. */
-varname         [[:alpha:]_][[:alnum:]_]{0,62}
+varname         [[:alpha:]_][[:alnum:]_]{0,29}
 endline			[\n]
 whitespace		[ \f\n\r\t\v]
 
@@ -30,6 +30,7 @@ whitespace		[ \f\n\r\t\v]
 
 "entity"                                    { return EntityKeywordPatternAction(); }
 "!key"                                      { return PrimaryKeyKeywordPatternAction(); }
+"relation"                                  { return RelationKeywordPatternAction(); }
 
 "int"                                       { return AttributeTypePatternAction(yytext, yyleng, INT); }
 "integer"                                   { return AttributeTypePatternAction(yytext, yyleng, INT); }
@@ -44,6 +45,8 @@ whitespace		[ \f\n\r\t\v]
 
 "date"                                      { return AttributeTypePatternAction(yytext, yyleng, DATE); }
 "time"                                      { return AttributeTypePatternAction(yytext, yyleng, TIME); }
+
+"entity::"{varname}                         { return EntityTypePatternAction(yytext, yyleng); }
 
 "{"                                         { return OpenCurlyBracketsPatternAction(); }
 "}"                                         { return CloseCurlyBracketsPatternAction(); }

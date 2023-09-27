@@ -1,0 +1,8 @@
+entity Name {
+    a: int,
+    b: int
+}
+
+relation Name {
+    x: entity::Name
+}
