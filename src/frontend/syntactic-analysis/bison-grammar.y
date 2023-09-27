@@ -4,18 +4,9 @@
 
 %}
 
-// Tipos de dato utilizados en las variables semánticas ($$, $1, $2, etc.).
+// Tipos de dato utilizados en las variables semánticas.
 %union {
-	// No-terminales (backend).
-	/*
-	Program program;
-	Expression expression;
-	Factor factor;
-	Constant constant;
-	...
-	*/
-
-	// No-terminales (frontend).
+	// No-terminales.
 	Program* program;
 
 	ObjectList* objectList;
@@ -68,8 +59,6 @@
 
 %type <attributeList> relationAttributeList
 %type <attribute> relationAttribute
-
-// Reglas de asociatividad y precedencia (de menor a mayor).
 
 // El símbolo inicial de la gramatica.
 %start program
