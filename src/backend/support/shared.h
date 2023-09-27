@@ -36,11 +36,6 @@ typedef enum { false = 0, true = 1 } boolean;
 // El tipo de los tokens emitidos por Flex.
 typedef int token;
 
-typedef struct NameQueue {
-    NameList* first;
-    NameList* last;
-} NameQueue;
-
 // Estado global de toda la aplicación.
 typedef struct {
     // Indica si la compilación tuvo problemas hasta el momento.
@@ -53,26 +48,11 @@ typedef struct {
     // Agregar una pila para manipular scopes.
     // Agregar una tabla de símbolos.
     // ...
-    NameQueue scopeKeys;
-
-    EntityRefList* entityRefList;
-    RelationRefList* relationRefList;
-
-    NameList* scopedNames;
 } CompilerState;
 
-void addScopedKey(const char name[NAMEDATALEN]);
-NameList* getScopedKeys();
-
-void addScopedName(const char name[NAMEDATALEN]);
-boolean isNameInScope(const char name[NAMEDATALEN]);
-void clearScopedNames();
-
-void addEntity(const Entity* entityRef);
-const Entity* findEntity(const char name[NAMEDATALEN]);
-
-void addRelation(const Relation* relationRef);
-const Relation* findRelation(const char name[NAMEDATALEN]);
+void registerLocalSymbol(const char name[NAMEDATALEN]);
+boolean isSymbolInScope(const char name[NAMEDATALEN]);
+void resetScope();
 
 // El estado se define e inicializa en el archivo "main.c".
 extern CompilerState state;

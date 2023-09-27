@@ -1,4 +1,4 @@
 entity Name {
     x: int,
-    x: int
+    x: int,
 }

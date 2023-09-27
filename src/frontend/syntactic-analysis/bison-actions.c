@@ -27,140 +27,174 @@ void yyerror(const char* string) {
     LogErrorRaw("' (length = %d, linea %d).\n\n", yyleng, yylineno);
 }
 
+const Object* getReference(ObjectList* list, const char symbol[NAMEDATALEN]) {
+    ObjectList* node = list;
+    while (node != NULL) {
+        if (strncmp(node->object->name, symbol, NAMEDATALEN) == 0) {
+            return node->object;
+        }
+
+        node = node->next;
+    }
+    return NULL;
+}
+
+const Attribute* getLocalReference(AttributeList* list, const char name[NAMEDATALEN]) {
+    AttributeList* node = list;
+    while (node != NULL) {
+        if (strncmp(node->attribute->name, name, NAMEDATALEN) == 0) {
+            return node->attribute;
+        }
+
+        node = node->next;
+    }
+    return NULL;
+}
+
+int checkLocalRedeclaration(AttributeList* list) {
+    AttributeList* node = list;
+    while (node != NULL) {
+        Attribute* attribute = node->attribute;
+        if (getLocalReference(node->next, attribute->name) != NULL) {
+            LogError("[Linker] Duplicate symbol '%s'", attribute->name);
+            return 1;
+        }
+
+        node = node->next;
+    }
+    return 0;
+}
+
+int linkRelation(Program* program, Object* relation) {
+    AttributeList* node = relation->attributeList;
+    while (node != NULL) {
+        Attribute* attribute = node->attribute;
+        if (attribute->type == SYMBOL) {
+            const Object* reference = getReference(program->objectList, attribute->data.symbol);
+            if (reference != NULL && reference->type == ENTITY) {
+                attribute->type = REFERENCE;
+                attribute->data.reference = reference;
+            } else {
+                LogError("[Linker] Missing definition '%s'", attribute->data.symbol);
+                return 1;
+            }
+        }
+
+        node = node->next;
+    }
+    return 0;
+}
+
+int Linker(Program* program) {
+    ObjectList* node = program->objectList;
+    while (node != NULL) {
+        Object* object = node->object;
+
+        if (getReference(node->next, object->name) != NULL) {
+            LogError("[Linker] Duplicate symbol '%s'", object->name);
+            return 1;
+        }
+
+        if (checkLocalRedeclaration(object->attributeList) != 0) {
+            return 2;
+        }
+
+        if (object->type == RELATION) {
+            if (linkRelation(program, object) != 0) {
+                return 3;
+            }
+        }
+
+        node = node->next;
+    }
+
+    return 0;
+}
+
 /**
  * Esta acción se corresponde con el no-terminal que representa el símbolo
  * inicial de la gramática, y por ende, es el último en ser ejecutado, lo que
  * indica que efectivamente el programa de entrada se pudo generar con esta
  * gramática, o lo que es lo mismo, que el programa pertenece al lenguaje.
  */
-Program* ProgramGrammarAction(StatementList* statementList) {
+Program* ProgramGrammarAction(ObjectList* objectList) {
     LogDebug("[Bison] ProgramGrammarAction");
     Program* program = malloc(sizeof(Program));
-    program->statementList = statementList;
+    program->objectList = objectList;
+
+    state.succeed = Linker(program) == 0;
+
     state.program = program;
     return program;
 }
 
-StatementList* StatementListGrammarAction(Statement* statement, StatementList* next) {
-    LogDebug("[Bison] StatementListGrammarAction");
-    StatementList* List = malloc(sizeof(StatementList));
-    List->statement = statement;
-    List->next = next;
-    return List;
-}
-
-AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* next) {
-    LogDebug("[Bison] AttributeListGrammarAction");
-    AttributeList* List = malloc(sizeof(AttributeList));
-    List->attribute = attribute;
-    List->next = next;
-    return List;
-}
-
-RelationEntityList* RelationEntityListGrammarAction(RelationEntity* relationEntity, RelationEntityList* next) {
-    LogDebug("[Bison] RelationEntityListGrammarAction");
-    RelationEntityList* node = malloc(sizeof(RelationEntityList));
-    node->relationEntity = relationEntity;
+ObjectList* ObjectListGrammarAction(Object* object, ObjectList* next) {
+    LogDebug("[Bison] ObjectListGrammarAction");
+    ObjectList* node = malloc(sizeof(ObjectList));
+    node->object = object;
     node->next = next;
     return node;
 }
 
-Statement* EntityStatementGrammarAction(Entity* entity) {
-    if (entity == NULL) {
-        return NULL;
-    }
-
-    LogDebug("[Bison] EntityStatementGrammarAction");
-    Statement* statement = malloc(sizeof(Statement));
-    statement->type = ENTITY;
-    statement->variant.entity = entity;
-    return statement;
+AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* next) {
+    LogDebug("[Bison] AttributeListGrammarAction");
+    AttributeList* node = malloc(sizeof(AttributeList));
+    node->attribute = attribute;
+    node->next = next;
+    return node;
 }
 
-Statement* RelationStatementGrammarAction(Relation* relation) {
-    if (relation == NULL) {
-        return NULL;
-    }
+Object* EntityObjectGrammarAction(Entity* entity) {
+    LogDebug("[Bison] EntityObjectGrammarAction");
+    Object* object = malloc(sizeof(Object));
+    object->type = ENTITY;
+    object->attributeList = entity->attributeList;
+    strncpy(object->name, entity->name, NAMEDATALEN);
+    free(entity);
+    return object;
+}
 
-    LogDebug("[Bison] RelationStatementGrammarAction");
-    Statement* statement = malloc(sizeof(Statement));
-    statement->type = RELATION;
-    statement->variant.relation = relation;
-    return statement;
+Object* RelationObjectGrammarAction(Relation* relation) {
+    LogDebug("[Bison] RelationObjectGrammarAction");
+    Object* object = malloc(sizeof(Object));
+    object->type = RELATION;
+    object->attributeList = relation->attributeList;
+    strncpy(object->name, relation->name, NAMEDATALEN);
+    free(relation);
+    return object;
 }
 
 Entity* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
-    if (findEntity(name) != NULL || findRelation(name) != NULL) {
-        state.succeed = false;
-        LogError("Object redeclaration of name '%s'", name);
-        return NULL;
-    }
-
     LogDebug("[Bison] EntityGrammarAction(%s)", name);
     Entity* entity = malloc(sizeof(Entity));
     strncpy(entity->name, name, NAMEDATALEN);
-    entity->attributes = attributes;
-    entity->keys = getScopedKeys(&state.scopeKeys);
-    addEntity(entity);
-    clearScopedNames();
+    entity->attributeList = attributes;
     return entity;
 }
 
-Relation* RelationGrammarAction(const char name[NAMEDATALEN], RelationEntityList* relationEntityList) {
-    if (findEntity(name) != NULL || findRelation(name) != NULL) {
-        state.succeed = false;
-        LogError("Object redeclaration of name '%s'", name);
-        return NULL;
-    }
-
+Relation* RelationGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
     LogDebug("[Bison] RelationGrammarAction(%s)", name);
     Relation* relation = malloc(sizeof(Relation));
     strncpy(relation->name, name, NAMEDATALEN);
-    relation->relationEntityList = relationEntityList;
-    addRelation(relation);
-    clearScopedNames();
+    relation->attributeList = attributes;
     return relation;
 }
 
 Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier) {
-    if (isNameInScope(name)) {
-        state.succeed = false;
-        LogError("Object redeclaration in this scope of name '%s'", name);
-        return NULL;
-    }
-
     LogDebug("[Bison] AttributeGrammarAction(%s)", name);
-
-    if (modifier == PK) {
-        addScopedKey(name);
-    }
 
     Attribute* attribute = malloc(sizeof(Attribute));
     strncpy(attribute->name, name, NAMEDATALEN);
     attribute->type = type;
-    attribute->modifier = modifier;
-    addScopedName(name);
+    attribute->data.modifier = modifier;
     return attribute;
 }
 
-RelationEntity* RelationEntityGrammarAction(const char name[NAMEDATALEN], const char entityName[NAMEDATALEN]) {
-    if (isNameInScope(name)) {
-        state.succeed = false;
-        LogError("Object redeclaration in this scope of name '%s'", name);
-        return NULL;
-    }
-
-    const Entity* entityRef = findEntity(entityName);
-    if (entityRef == NULL) {
-        state.succeed = false;
-        LogError("Reference to undefined entity '%s'", name);
-        return NULL;
-    }
-
-    LogDebug("[Bison] RelationEntityGrammarAction(%s)", name);
-    RelationEntity* relationEntity = malloc(sizeof(RelationEntity));
-    strncpy(relationEntity->name, name, NAMEDATALEN);
-    relationEntity->entityRef = entityRef;
-    addScopedName(name);
-    return relationEntity;
+Attribute* SymbolAttributeGrammarAction(const char name[NAMEDATALEN], const char symbol[NAMEDATALEN]) {
+    LogDebug("[Bison] SymbolAttributeGrammarAction(%s)", name);
+    Attribute* attribute = malloc(sizeof(Attribute));
+    attribute->type = SYMBOL;
+    strncpy(attribute->name, name, NAMEDATALEN);
+    strncpy(attribute->data.symbol, symbol, NAMEDATALEN);
+    return attribute;
 }

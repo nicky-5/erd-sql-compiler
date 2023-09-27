@@ -12,23 +12,22 @@
  */
 
 // Program
-Program* ProgramGrammarAction(StatementList* statements);
+Program* ProgramGrammarAction(ObjectList* objects);
 
 // Lists
-StatementList* StatementListGrammarAction(Statement* statement, StatementList* next);
+ObjectList* ObjectListGrammarAction(Object* object, ObjectList* next);
 AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* next);
-RelationEntityList* RelationEntityListGrammarAction(RelationEntity* relationEntity, RelationEntityList* next);
 
-// Statements
-Statement* EntityStatementGrammarAction(Entity* entity);
-Statement* RelationStatementGrammarAction(Relation* relation);
+// Objects
+Object* EntityObjectGrammarAction(Entity* entity);
+Object* RelationObjectGrammarAction(Relation* relation);
 
-// Statement variants
+// Object variants
 Entity* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes);
-Relation* RelationGrammarAction(const char name[NAMEDATALEN], RelationEntityList* relationEntityList);
+Relation* RelationGrammarAction(const char name[NAMEDATALEN], AttributeList* relationAttributeList);
 
 // Attributes
 Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier);
-RelationEntity* RelationEntityGrammarAction(const char name[NAMEDATALEN], const char entityName[NAMEDATALEN]);
+Attribute* SymbolAttributeGrammarAction(const char name[NAMEDATALEN], const char symbol[NAMEDATALEN]);
 
 #endif

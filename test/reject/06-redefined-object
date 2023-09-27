@@ -1,8 +1,8 @@
 entity Name {
     a: int,
-    b: int
+    b: int,
 }
 
 relation Name {
-    x: entity::Name
+    x: entity::Name,
 }

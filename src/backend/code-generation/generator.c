@@ -1,6 +1,7 @@
 #include "generator.h"
 
 #include "../support/logger.h"
+#include "../support/shared.h"
 
 /**
  * Implementación de "generator.h".
@@ -28,53 +29,82 @@ const char* getTypeName(AttributeType type) {
     return NULL;
 }
 
-void LogRawPrimaryKeys(NameList* keys) {
-    if (keys != NULL) {
-        LogRaw("    PRIMARY KEY (");
-        while (keys != NULL) {
-            LogRaw("%s", keys->name);
-            if (keys->next != NULL) {
+void LogRawKeys(AttributeList* node) {
+    boolean first = true;
+    while (node != NULL) {
+        if (node->attribute->data.modifier == KEY) {
+            if (first) {
+                LogRaw(",\n    PRIMARY KEY (");
+                first = false;
+            } else {
                 LogRaw(", ");
             }
-
-            keys = keys->next;
+            LogRaw("\"%s\"", node->attribute->name);
         }
+
+        node = node->next;
+    }
+    if (!first) {
         LogRaw(")\n");
     }
 }
 
-void LogRawAttributes(AttributeList* List, NameList* keys) {
-    while (List != NULL) {
-        Attribute* attribute = List->attribute;
+void LogRawAttributes(AttributeList* node) {
+    while (node != NULL) {
+        Attribute* attribute = node->attribute;
         LogRaw("    \"%s\" %s", attribute->name, getTypeName(attribute->type));
 
-        if (attribute->modifier != NULLABLE) {
+        if (attribute->data.modifier != NULLABLE) {
             LogRaw(" NOT NULL");
         }
 
-        if (List->next != NULL || keys != NULL) {
-            LogRaw(",");
+        if (node->next != NULL) {
+            LogRaw(",\n");
         }
 
-        LogRaw("\n");
-
-        List = List->next;
+        node = node->next;
     }
-    LogRawPrimaryKeys(keys);
+}
+
+void LogRawRelationKeys(AttributeList* node, const char* name) {
+    while (node != NULL) {
+        Attribute* attribute = node->attribute;
+        if (attribute->data.modifier == KEY) {
+            LogRaw("    \"%s$%s\" %s NOT NULL,\n", name, attribute->name, getTypeName(attribute->type));
+        }
+
+        node = node->next;
+    }
+}
+
+void LogRawRelationAttributes(AttributeList* node, const char name[NAMEDATALEN]) {
+    while (node != NULL) {
+        Attribute* attribute = node->attribute;
+        if (attribute->type == REFERENCE) {
+            LogRawRelationKeys(attribute->data.reference->attributeList, name);
+        } else {
+            LogRaw("    \"%s\" %s", attribute->name, getTypeName(attribute->type));
+        }
+
+        node = node->next;
+    }
 }
 
 void Generator(Program* program) {
-    StatementList* List = program->statementList;
+    ObjectList* List = program->objectList;
     while (List != NULL) {
-        Statement* statement = List->statement;
-        switch (statement->type) {
+        Object* object = List->object;
+        LogRaw("CREATE TABLE \"%s\" (\n", object->name);
+        switch (object->type) {
             case ENTITY:
-                Entity* entity = statement->variant.entity;
-                LogRaw("CREATE TABLE \"%s\" (\n", entity->name);
-                LogRawAttributes(entity->attributes, entity->keys);
-                LogRaw(");\n");
+                LogRawAttributes(object->attributeList);
+                LogRawKeys(object->attributeList);
+                break;
+            case RELATION:
+                LogRawRelationAttributes(object->attributeList, object->name);
                 break;
         }
+        LogRaw(");\n");
         List = List->next;
     }
 }

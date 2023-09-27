@@ -18,8 +18,8 @@
 	// No-terminales (frontend).
 	Program* program;
 
-	StatementList* statementList;
-	Statement* statement;
+	ObjectList* objectList;
+	Object* object;
 
 	Entity* entity;
 	Relation* relation;
@@ -27,9 +27,6 @@
 	AttributeList* attributeList;
 	Attribute* attribute;
 	AttributeType attributeType;
-
-	RelationEntityList* relationEntityList;
-	RelationEntity* relationEntity;
 
 	// Terminales.
 	token token;
@@ -50,7 +47,7 @@
 %token <token> COLON
 %token <token> COMMA
 %token <token> QUESTION_MARK
-%token <token> PK_KEYWORD
+%token <token> KEY_KEYWORD
 
 // Values
 %token <varname> VARNAME
@@ -60,8 +57,8 @@
 // Tipos de dato para los no-terminales generados desde Bison.
 %type <program> program
 
-%type <statementList> statementList
-%type <statement> statement
+%type <objectList> objectList
+%type <object> object
 
 %type <entity> entity
 %type <relation> relation
@@ -69,8 +66,8 @@
 %type <attributeList> attributeList
 %type <attribute> attribute
 
-%type <relationEntityList> relationEntityList
-%type <relationEntity> relationEntity
+%type <attributeList> relationAttributeList
+%type <attribute> relationAttribute
 
 // Reglas de asociatividad y precedencia (de menor a mayor).
 
@@ -81,49 +78,49 @@
 
 program
 	: /* empty program */																{ $$ = ProgramGrammarAction(NULL); }
-	| statementList																		{ $$ = ProgramGrammarAction($1); }
+	| objectList																		{ $$ = ProgramGrammarAction($1); }
 	;
 
-statementList
-	: statement																			{ $$ = StatementListGrammarAction($1, NULL); }
-	| statement statementList															{ $$ = StatementListGrammarAction($1, $2); }
+objectList
+	: object																			{ $$ = ObjectListGrammarAction($1, NULL); }
+	| object objectList 																{ $$ = ObjectListGrammarAction($1, $2); }
 	;
 
-statement
-	: entity																			{ $$ = EntityStatementGrammarAction($1); }
-	| relation																			{ $$ = RelationStatementGrammarAction($1); }
+object
+	: entity																			{ $$ = EntityObjectGrammarAction($1); }
+	| relation																			{ $$ = RelationObjectGrammarAction($1); }
 	;
 
 entity
-	: ENTITY_KEYWORD VARNAME OPEN_CURLY_BRACKETS 
-	  attributeList 
-	  CLOSE_CURLY_BRACKETS																{ $$ = EntityGrammarAction($2, $4); }
+	: ENTITY_KEYWORD VARNAME[name] OPEN_CURLY_BRACKETS 
+	  attributeList[attrs] 
+	  CLOSE_CURLY_BRACKETS																{ $$ = EntityGrammarAction($name, $attrs); }
 	;
 
 attributeList
 	: attribute																			{ $$ = AttributeListGrammarAction($1, NULL); }
-	| attribute COMMA attributeList														{ $$ = AttributeListGrammarAction($1, $3); }
+	| attribute attributeList															{ $$ = AttributeListGrammarAction($1, $2); }
 	;
 
 attribute
-	: VARNAME COLON ATTRIBUTE_TYPE														{ $$ = AttributeGrammarAction($1, $3, NOTNULL); }
-	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK										{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
-	| VARNAME COLON ATTRIBUTE_TYPE PK_KEYWORD											{ $$ = AttributeGrammarAction($1, $3, PK); }
+	: VARNAME COLON ATTRIBUTE_TYPE COMMA												{ $$ = AttributeGrammarAction($1, $3, NOTNULL); }
+	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK COMMA									{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
+	| VARNAME COLON ATTRIBUTE_TYPE KEY_KEYWORD COMMA									{ $$ = AttributeGrammarAction($1, $3, KEY); }
 	;
 
 relation
 	: RELATION_KEYWORD VARNAME OPEN_CURLY_BRACKETS
-	  relationEntityList 
+	  relationAttributeList 
 	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($2, $4); }
 	;
 
-relationEntityList
-	: relationEntity																	{ $$ = RelationEntityListGrammarAction($1, NULL); }
-	| relationEntity COMMA relationEntityList											{ $$ = RelationEntityListGrammarAction($1, $3); }
+relationAttributeList
+	: relationAttribute																	{ $$ = AttributeListGrammarAction($1, NULL); }
+	| relationAttribute relationAttributeList											{ $$ = AttributeListGrammarAction($1, $2); }
 	;
 
-relationEntity
-	: VARNAME COLON ENTITY_TYPE															{ $$ = RelationEntityGrammarAction($1, $3); }
+relationAttribute
+	: VARNAME COLON ENTITY_TYPE COMMA													{ $$ = SymbolAttributeGrammarAction($1, $3); }
 	;
 
 %%

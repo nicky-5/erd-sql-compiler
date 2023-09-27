@@ -31,16 +31,17 @@ void BeginCommentPatternAction() { LogDebug("[Flex] [COMMENT] BeginCommentPatter
 
 void EndCommentPatternAction() { LogDebug("[Flex] [COMMENT] EndCommentPatternAction.............................."); }
 
+// KEYWORDS START
 token EntityKeywordPatternAction() {
     LogDebug("[Flex] EntityKeywordPatternAction: 'entity'.");
     yylval.token = ENTITY_KEYWORD;
     return ENTITY_KEYWORD;
 }
 
-token PrimaryKeyKeywordPatternAction() {
-    LogDebug("[Flex] PrimaryKeyKeywordPatternAction: 'PK'.");
-    yylval.token = PK_KEYWORD;
-    return PK_KEYWORD;
+token KeyKeywordPatternAction() {
+    LogDebug("[Flex] KeyKeywordPatternAction: '!key'.");
+    yylval.token = KEY_KEYWORD;
+    return KEY_KEYWORD;
 }
 
 token RelationKeywordPatternAction() {
@@ -48,7 +49,9 @@ token RelationKeywordPatternAction() {
     yylval.token = RELATION_KEYWORD;
     return RELATION_KEYWORD;
 }
+// KEYWORDS END
 
+// TYPES START
 token AttributeTypePatternAction(const char *lexeme, const int length, AttributeType type) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] AttributeTypePatternAction: '%s'.", lexemeCopy);
@@ -64,7 +67,9 @@ token EntityTypePatternAction(const char *lexeme, const int length) {
     strncpy(yylval.varname, lexemeCopy + 8, NAMEDATALEN);
     return ENTITY_TYPE;
 }
+// TYPES END
 
+// SYMBOLS START
 token OpenCurlyBracketsPatternAction() {
     LogDebug("[Flex] OpenCurlyBracketsPatternAction: '{'.");
     yylval.token = OPEN_CURLY_BRACKETS;
@@ -94,7 +99,9 @@ token QuestionMarkPatternAction() {
     yylval.token = QUESTION_MARK;
     return QUESTION_MARK;
 }
+// SYMBOLS END
 
+// VALUES START
 token VarnamePatternAction(const char *lexeme, const int length) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] VarnamePatternAction: '%s' (length = %d).", lexemeCopy, length);
@@ -102,7 +109,9 @@ token VarnamePatternAction(const char *lexeme, const int length) {
     free(lexemeCopy);
     return VARNAME;
 }
+// VALUES END
 
+// OTHER START
 token UnknownPatternAction(const char *lexeme, const int length) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] UnknownPatternAction: '%s' (length = %d).", lexemeCopy, length);
@@ -121,3 +130,4 @@ void IgnoredPatternAction(const char *lexeme, const int length) {
     // Como no debe hacer nada con el patrón, solo se loguea en consola.
     // No se emite ningún token.
 }
+// OTHER END

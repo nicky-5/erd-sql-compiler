@@ -3,61 +3,38 @@
 
 #define NAMEDATALEN 31
 
-typedef enum StatementType { ENTITY, RELATION } StatementType;
+typedef enum ObjectType { ENTITY, RELATION } ObjectType;
+typedef enum AttributeType { INT, FLOAT, DOUBLE, TEXT, CHAR, BOOL, DATE, TIME, REFERENCE, SYMBOL } AttributeType;
+typedef enum AttributeModifier { NOTNULL, NULLABLE, KEY } AttributeModifier;
 
-typedef enum AttributeType { INT, FLOAT, DOUBLE, TEXT, CHAR, BOOL, DATE, TIME } AttributeType;
-typedef enum AttributeModifier { NOTNULL, NULLABLE, PK } AttributeModifier;
-
-typedef struct StatementList StatementList;
+typedef struct Object Object;
+typedef struct ObjectList ObjectList;
 
 typedef struct AttributeList AttributeList;
-typedef struct RelationEntityList RelationEntityList;
 
-typedef struct EntityRefList EntityRefList;
-typedef struct RelationRefList RelationRefList;
+typedef struct EntityList EntityList;
+typedef struct RelationList RelationList;
 
-typedef struct NameList NameList;
-
-struct NameList {
-    char name[NAMEDATALEN];
-    NameList* next;
-};
+typedef struct SymbolList SymbolList;
 
 typedef struct Relation {
     char name[NAMEDATALEN];
-    RelationEntityList* relationEntityList;
+    AttributeList* attributeList;
 } Relation;
-
-typedef struct RelationRefList {
-    const Relation* relationRef;
-    RelationRefList* next;
-} RelationRefList;
 
 typedef struct Entity {
     char name[NAMEDATALEN];
-    AttributeList* attributes;
-    NameList* keys;
+    AttributeList* attributeList;
 } Entity;
-
-typedef struct EntityRefList {
-    const Entity* entityRef;
-    EntityRefList* next;
-} EntityRefList;
-
-typedef struct RelationEntity {
-    char name[NAMEDATALEN];
-    const Entity* entityRef;
-} RelationEntity;
-
-struct RelationEntityList {
-    RelationEntity* relationEntity;
-    RelationEntityList* next;
-};
 
 typedef struct Attribute {
     char name[NAMEDATALEN];
     AttributeType type;
-    AttributeModifier modifier;
+    union AttributeData {
+        AttributeModifier modifier;
+        const Object* reference;
+        char symbol[NAMEDATALEN];
+    } data;
 } Attribute;
 
 struct AttributeList {
@@ -65,21 +42,19 @@ struct AttributeList {
     AttributeList* next;
 };
 
-typedef struct Statement {
-    StatementType type;
-    union StatementVariant {
-        Entity* entity;
-        Relation* relation;
-    } variant;
-} Statement;
+struct Object {
+    ObjectType type;
+    char name[NAMEDATALEN];
+    AttributeList* attributeList;
+};
 
-struct StatementList {
-    Statement* statement;
-    StatementList* next;
+struct ObjectList {
+    Object* object;
+    ObjectList* next;
 };
 
 typedef struct Program {
-    StatementList* statementList;
+    ObjectList* objectList;
 } Program;
 
 #endif

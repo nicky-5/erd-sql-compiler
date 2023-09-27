@@ -29,7 +29,7 @@ whitespace		[ \f\n\r\t\v]
 <COMMENT>"*/"								{ EndCommentPatternAction(); BEGIN(INITIAL); }
 
 "entity"                                    { return EntityKeywordPatternAction(); }
-"!key"                                      { return PrimaryKeyKeywordPatternAction(); }
+"!key"                                      { return KeyKeywordPatternAction(); }
 "relation"                                  { return RelationKeywordPatternAction(); }
 
 "int"                                       { return AttributeTypePatternAction(yytext, yyleng, INT); }
