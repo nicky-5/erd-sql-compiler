@@ -63,8 +63,8 @@ token AttributeTypePatternAction(const char *lexeme, const int length, Attribute
 token EntityTypePatternAction(const char *lexeme, const int length) {
     char *lexemeCopy = copyLexeme(lexeme, length);
     LogDebug("[Flex] EntityTypePatternAction: '%s'.", lexemeCopy);
-    free(lexemeCopy);
     strncpy(yylval.varname, lexemeCopy + 8, NAMEDATALEN);
+    free(lexemeCopy);
     return ENTITY_TYPE;
 }
 // TYPES END

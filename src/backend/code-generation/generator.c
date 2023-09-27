@@ -153,21 +153,27 @@ void LogRawForeignKeyList(AttributeList* node) {
 }
 
 void Generator(Program* program) {
-    ObjectList* List = program->objectList;
-    while (List != NULL) {
-        Object* object = List->object;
-        LogRaw("CREATE TABLE \"%s\" (\n", object->name);
-        switch (object->type) {
-            case ENTITY:
-                LogRawAttributes(object->attributeList);
-                LogRawKeys(object->attributeList);
-                break;
-            case RELATION:
-                LogRawRelationAttributes(object->attributeList);
-                LogRawForeignKeyList(object->attributeList);
-                break;
+    ObjectList* node = program->objectList;
+    while (node != NULL) {
+        Object* object = node->object;
+        if (object->type == ENTITY) {
+            LogRaw("CREATE TABLE \"%s\" (\n", object->name);
+            LogRawAttributes(object->attributeList);
+            LogRawKeys(object->attributeList);
+            LogRaw(");\n\n");
         }
-        LogRaw(");\n\n");
-        List = List->next;
+        node = node->next;
+    }
+
+    node = program->objectList;
+    while (node != NULL) {
+        Object* object = node->object;
+        if (object->type == RELATION) {
+            LogRaw("CREATE TABLE \"%s\" (\n", object->name);
+            LogRawRelationAttributes(object->attributeList);
+            LogRawForeignKeyList(object->attributeList);
+            LogRaw(");\n\n");
+        }
+        node = node->next;
     }
 }

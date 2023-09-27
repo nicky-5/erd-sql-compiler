@@ -72,6 +72,7 @@ int linkRelation(Program* program, Object* relation) {
         if (attribute->type == SYMBOL) {
             const Object* reference = getReference(program->objectList, attribute->data.symbol);
             if (reference != NULL && reference->type == ENTITY) {
+                LogDebug("[Linker] Linked entity '%s' to relation '%s'", attribute->data.symbol, relation->name);
                 attribute->type = REFERENCE;
                 attribute->data.reference = reference;
             } else {
@@ -129,7 +130,7 @@ Program* ProgramGrammarAction(ObjectList* objectList) {
 }
 
 ObjectList* ObjectListGrammarAction(Object* object, ObjectList* next) {
-    LogDebug("[Bison] ObjectListGrammarAction");
+    LogDebug("[Bison] ObjectListGrammarAction(name='%s', type=%d)", object->name, object->type);
     ObjectList* node = malloc(sizeof(ObjectList));
     node->object = object;
     node->next = next;
@@ -137,7 +138,7 @@ ObjectList* ObjectListGrammarAction(Object* object, ObjectList* next) {
 }
 
 AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* next) {
-    LogDebug("[Bison] AttributeListGrammarAction");
+    LogDebug("[Bison] AttributeListGrammarAction(name='%s', type=%d)", attribute->name, attribute->type);
     AttributeList* node = malloc(sizeof(AttributeList));
     node->attribute = attribute;
     node->next = next;
@@ -145,7 +146,7 @@ AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* n
 }
 
 Object* EntityObjectGrammarAction(Entity* entity) {
-    LogDebug("[Bison] EntityObjectGrammarAction");
+    LogDebug("[Bison] EntityObjectGrammarAction(name='%s')", entity->name);
     Object* object = malloc(sizeof(Object));
     object->type = ENTITY;
     object->attributeList = entity->attributeList;
@@ -155,7 +156,7 @@ Object* EntityObjectGrammarAction(Entity* entity) {
 }
 
 Object* RelationObjectGrammarAction(Relation* relation) {
-    LogDebug("[Bison] RelationObjectGrammarAction");
+    LogDebug("[Bison] RelationObjectGrammarAction(name='%s')", relation->name);
     Object* object = malloc(sizeof(Object));
     object->type = RELATION;
     object->attributeList = relation->attributeList;
@@ -165,7 +166,7 @@ Object* RelationObjectGrammarAction(Relation* relation) {
 }
 
 Entity* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
-    LogDebug("[Bison] EntityGrammarAction(%s)", name);
+    LogDebug("[Bison] EntityGrammarAction(name='%s')", name);
     Entity* entity = malloc(sizeof(Entity));
     strncpy(entity->name, name, NAMEDATALEN);
     entity->attributeList = attributes;
@@ -173,7 +174,7 @@ Entity* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attribu
 }
 
 Relation* RelationGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
-    LogDebug("[Bison] RelationGrammarAction(%s)", name);
+    LogDebug("[Bison] RelationGrammarAction(name='%s')", name);
     Relation* relation = malloc(sizeof(Relation));
     strncpy(relation->name, name, NAMEDATALEN);
     relation->attributeList = attributes;
@@ -181,7 +182,7 @@ Relation* RelationGrammarAction(const char name[NAMEDATALEN], AttributeList* att
 }
 
 Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier) {
-    LogDebug("[Bison] AttributeGrammarAction(%s)", name);
+    LogDebug("[Bison] AttributeGrammarAction(name='%s', type=%d, modifier=%d)", name, type, modifier);
 
     Attribute* attribute = malloc(sizeof(Attribute));
     strncpy(attribute->name, name, NAMEDATALEN);
@@ -191,7 +192,7 @@ Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType ty
 }
 
 Attribute* SymbolAttributeGrammarAction(const char name[NAMEDATALEN], const char symbol[NAMEDATALEN]) {
-    LogDebug("[Bison] SymbolAttributeGrammarAction(%s)", name);
+    LogDebug("[Bison] SymbolAttributeGrammarAction(name='%s', symbol='%s')", name, symbol);
     Attribute* attribute = malloc(sizeof(Attribute));
     attribute->type = SYMBOL;
     strncpy(attribute->name, name, NAMEDATALEN);
