@@ -36,9 +36,15 @@ token EntityTypePatternAction(const char* lexeme, const int length);
 // Symbols
 token OpenCurlyBracketsPatternAction();
 token CloseCurlyBracketsPatternAction();
+token OpenSquareBracketsPatternAction();
+token CloseSquareBracketsPatternAction();
+token OpenParenthesisPatternAction();
+token CloseParenthesisPatternAction();
 token ColonPatternAction();
 token CommaPatternAction();
 token QuestionMarkPatternAction();
+token OnePatternAction();
+token MPatternAction();
 
 // Values
 token VarnamePatternAction(const char* lexeme, const int length);

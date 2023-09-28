@@ -1,5 +1,5 @@
 relation Rel {
-    name: entity::Name,
+    name: entity::Name(1),
 }
 
 entity Name {

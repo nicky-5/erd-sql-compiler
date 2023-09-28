@@ -82,6 +82,30 @@ token CloseCurlyBracketsPatternAction() {
     return CLOSE_CURLY_BRACKETS;
 }
 
+token OpenSquareBracketsPatternAction() {
+    LogDebug("[Flex] OpenSqaureBracketsPatternAction: '['.");
+    yylval.token = OPEN_SQUARE_BRACKETS;
+    return OPEN_SQUARE_BRACKETS;
+}
+
+token CloseSquareBracketsPatternAction() {
+    LogDebug("[Flex] CloseSquareBracketsPatternAction: ']'.");
+    yylval.token = CLOSE_SQUARE_BRACKETS;
+    return CLOSE_SQUARE_BRACKETS;
+}
+
+token OpenParenthesisPatternAction() {
+    LogDebug("[Flex] OpenParenthesisPatternAction: '('.");
+    yylval.token = OPEN_PARENTHESIS;
+    return OPEN_PARENTHESIS;
+}
+
+token CloseParenthesisPatternAction() {
+    LogDebug("[Flex] CloseParenthesisPatternAction: ')'.");
+    yylval.token = CLOSE_PARENTHESIS;
+    return CLOSE_PARENTHESIS;
+}
+
 token ColonPatternAction() {
     LogDebug("[Flex] ColonPatternAction: ':'.");
     yylval.token = COLON;
@@ -98,6 +122,18 @@ token QuestionMarkPatternAction() {
     LogDebug("[Flex] QuestionMarkPatternAction: '?'.");
     yylval.token = QUESTION_MARK;
     return QUESTION_MARK;
+}
+
+token OnePatternAction() {
+    LogDebug("[Flex] OnePatternAction: '1'.");
+    yylval.token = NUM_ONE;
+    return NUM_ONE;
+}
+
+token MPatternAction() {
+    LogDebug("[Flex] MPatternAction: 'M'.");
+    yylval.token = LETTER_M;
+    return LETTER_M;
 }
 // SYMBOLS END
 

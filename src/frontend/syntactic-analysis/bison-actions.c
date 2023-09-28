@@ -66,23 +66,25 @@ int checkLocalRedeclaration(AttributeList* list) {
 }
 
 int linkRelation(Program* program, Object* relation) {
-    AttributeList* node = relation->attributeList;
-    while (node != NULL) {
-        Attribute* attribute = node->attribute;
-        if (attribute->type == SYMBOL) {
-            const Object* reference = getReference(program->objectList, attribute->data.symbol);
-            if (reference != NULL && reference->type == ENTITY) {
-                LogDebug("[Linker] Linked entity '%s' to relation '%s'", attribute->data.symbol, relation->name);
-                attribute->type = REFERENCE;
-                attribute->data.reference = reference;
-            } else {
-                LogError("[Linker] Missing definition '%s'", attribute->data.symbol);
-                return 1;
-            }
+    for (size_t i = 0; i < 3; i++) {
+        Link* link = relation->linkedObjects[i];
+
+        if (link == NULL) {
+            break;
         }
 
-        node = node->next;
+        if (link->type == SYMBOL) {
+            LogDebug("[Linker] Linking symbol '%s' with reference to 'entity::%s'", link->name, link->variant.symbol);
+            const Object* reference = getReference(program->objectList, link->variant.symbol);
+            if (reference == NULL) {
+                return 1;
+            }
+
+            link->type = REFERENCE;
+            link->variant.reference = reference;
+        }
     }
+
     return 0;
 }
 
@@ -101,6 +103,7 @@ int Linker(Program* program) {
         }
 
         if (object->type == RELATION) {
+            LogDebug("[Linker] Found relation '%s'", object->name);
             if (linkRelation(program, object) != 0) {
                 return 3;
             }
@@ -145,39 +148,22 @@ AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* n
     return node;
 }
 
-Object* EntityObjectGrammarAction(Entity* entity) {
-    LogDebug("[Bison] EntityObjectGrammarAction(name='%s')", entity->name);
-    Object* object = malloc(sizeof(Object));
-    object->type = ENTITY;
-    object->attributeList = entity->attributeList;
-    strncpy(object->name, entity->name, NAMEDATALEN);
-    free(entity);
-    return object;
-}
-
-Object* RelationObjectGrammarAction(Relation* relation) {
-    LogDebug("[Bison] RelationObjectGrammarAction(name='%s')", relation->name);
-    Object* object = malloc(sizeof(Object));
-    object->type = RELATION;
-    object->attributeList = relation->attributeList;
-    strncpy(object->name, relation->name, NAMEDATALEN);
-    free(relation);
-    return object;
-}
-
-Entity* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
+Object* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
     LogDebug("[Bison] EntityGrammarAction(name='%s')", name);
-    Entity* entity = malloc(sizeof(Entity));
+    Object* entity = malloc(sizeof(Object));
     strncpy(entity->name, name, NAMEDATALEN);
+    entity->type = ENTITY;
     entity->attributeList = attributes;
     return entity;
 }
 
-Relation* RelationGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
-    LogDebug("[Bison] RelationGrammarAction(name='%s')", name);
-    Relation* relation = malloc(sizeof(Relation));
+Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, AttributeList* attributes) {
+    LogDebug("[Bison] RelationGrammarAction(name='%s', [0]=%x, [1]=%x, [2]=%x)", name, links[0], links[1], links[2]);
+    Object* relation = malloc(sizeof(Object));
     strncpy(relation->name, name, NAMEDATALEN);
+    relation->type = RELATION;
     relation->attributeList = attributes;
+    relation->linkedObjects = links;
     return relation;
 }
 
@@ -187,15 +173,25 @@ Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType ty
     Attribute* attribute = malloc(sizeof(Attribute));
     strncpy(attribute->name, name, NAMEDATALEN);
     attribute->type = type;
-    attribute->data.modifier = modifier;
+    attribute->modifier = modifier;
     return attribute;
 }
 
-Attribute* SymbolAttributeGrammarAction(const char name[NAMEDATALEN], const char symbol[NAMEDATALEN]) {
-    LogDebug("[Bison] SymbolAttributeGrammarAction(name='%s', symbol='%s')", name, symbol);
-    Attribute* attribute = malloc(sizeof(Attribute));
-    attribute->type = SYMBOL;
-    strncpy(attribute->name, name, NAMEDATALEN);
-    strncpy(attribute->data.symbol, symbol, NAMEDATALEN);
-    return attribute;
+Link* LinkGrammarAction(const char name[NAMEDATALEN], const char symbol[NAMEDATALEN], LinkModifier modifier) {
+    LogDebug("[Bison] LinkGrammarAction(name='%s', symbol='%s', modifier=%d)", name, symbol, modifier);
+    Link* link = malloc(sizeof(Link));
+    link->type = SYMBOL;
+    link->modifier = modifier;
+    strncpy(link->variant.symbol, symbol, NAMEDATALEN);
+    strncpy(link->name, name, NAMEDATALEN);
+    return link;
+}
+
+Link** LinkArrayGrammarAction(Link* linkA, Link* linkB, Link* linkC) {
+    LogDebug("[Bison] LinkArrayGrammarAction([0]=%x, [1]=%x, [2]=%x)", linkA, linkB, linkC);
+    Link** array = malloc(sizeof(Link* [3]));
+    array[0] = linkA;
+    array[1] = linkB;
+    array[2] = linkC;
+    return array;
 }

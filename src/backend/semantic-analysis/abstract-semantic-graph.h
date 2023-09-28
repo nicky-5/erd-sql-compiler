@@ -4,8 +4,13 @@
 #define NAMEDATALEN 31
 
 typedef enum ObjectType { ENTITY, RELATION } ObjectType;
-typedef enum AttributeType { INT, FLOAT, DOUBLE, TEXT, CHAR, BOOL, DATE, TIME, REFERENCE, SYMBOL } AttributeType;
-typedef enum AttributeModifier { NOTNULL, NULLABLE, KEY } AttributeModifier;
+
+typedef enum AttributeType { INT, FLOAT, DOUBLE, TEXT, CHAR, BOOL, DATE, TIME } AttributeType;
+typedef enum AttributeModifier { NOTNULL, NULLABLE, KEY, MULTI } AttributeModifier;
+
+typedef struct Link Link;
+typedef enum LinkType { SYMBOL, REFERENCE } LinkType;
+typedef enum LinkModifier { ONE, MANY } LinkModifier;
 
 typedef struct Object Object;
 typedef struct ObjectList ObjectList;
@@ -15,26 +20,20 @@ typedef struct AttributeList AttributeList;
 typedef struct EntityList EntityList;
 typedef struct RelationList RelationList;
 
-typedef struct SymbolList SymbolList;
-
-typedef struct Relation {
+struct Link {
     char name[NAMEDATALEN];
-    AttributeList* attributeList;
-} Relation;
-
-typedef struct Entity {
-    char name[NAMEDATALEN];
-    AttributeList* attributeList;
-} Entity;
+    LinkType type;
+    LinkModifier modifier;
+    union SymbolVariant {
+        char symbol[NAMEDATALEN];
+        const Object* reference;
+    } variant;
+};
 
 typedef struct Attribute {
     char name[NAMEDATALEN];
     AttributeType type;
-    union AttributeData {
-        AttributeModifier modifier;
-        const Object* reference;
-        char symbol[NAMEDATALEN];
-    } data;
+    AttributeModifier modifier;
 } Attribute;
 
 struct AttributeList {
@@ -46,6 +45,7 @@ struct Object {
     ObjectType type;
     char name[NAMEDATALEN];
     AttributeList* attributeList;
+    Link** linkedObjects;
 };
 
 struct ObjectList {

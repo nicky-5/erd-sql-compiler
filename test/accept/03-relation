@@ -3,6 +3,6 @@ entity Name {
 }
 
 relation Rel {
-    one: entity::Name,
-    two: entity::Name,
+    one: entity::Name(1),
+    two: entity::Name(1),
 }

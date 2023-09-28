@@ -50,9 +50,15 @@ whitespace		[ \f\n\r\t\v]
 
 "{"                                         { return OpenCurlyBracketsPatternAction(); }
 "}"                                         { return CloseCurlyBracketsPatternAction(); }
+"["                                         { return OpenSquareBracketsPatternAction(); }
+"]"                                         { return CloseSquareBracketsPatternAction(); }
+"("                                         { return OpenParenthesisPatternAction(); }
+")"                                         { return CloseParenthesisPatternAction(); }
 ":"                                         { return ColonPatternAction(); }
 ","                                         { return CommaPatternAction(); }
 "?"                                         { return QuestionMarkPatternAction(); }
+"1"                                         { return OnePatternAction(); }
+"M"                                         { return MPatternAction(); }
 
 {varname}                                   { return VarnamePatternAction(yytext, yyleng); }
 
