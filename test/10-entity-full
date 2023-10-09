@@ -1,0 +1,9 @@
+entity Name {
+    firstvalue: integer, /* This is a normal attribute */
+    secondvalue: char?, /*This is a nullable attribute */
+    thirdvalue: double !key, /*This is a primary key */
+    forthValue: compound::(
+        firstCompound: int?, /* Another nullable attribute */
+        secondCompound: char, /* Another normal attribute */
+    ),
+}
