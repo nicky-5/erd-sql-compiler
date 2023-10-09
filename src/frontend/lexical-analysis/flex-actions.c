@@ -67,6 +67,12 @@ token EntityTypePatternAction(const char *lexeme, const int length) {
     free(lexemeCopy);
     return ENTITY_TYPE;
 }
+
+token CompundTypePatternAction() {
+    LogDebug("[Flex] RelationKeywordPatternAction: 'composed::'.");
+    yylval.token = COMPOUND_TYPE;
+    return COMPOUND_TYPE;
+}
 // TYPES END
 
 // SYMBOLS START

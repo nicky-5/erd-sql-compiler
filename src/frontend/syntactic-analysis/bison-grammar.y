@@ -46,6 +46,7 @@
 %token <token> QUESTION_MARK
 %token <token> NUM_ONE
 %token <token> LETTER_M
+%token <token> COMPOUND_TYPE
 
 // Values
 %token <varname> VARNAME
@@ -63,6 +64,7 @@
 
 %type <attributeList> attributeList
 %type <attribute> attribute
+%type <attribute> compoundAttribute
 
 %type <attributeList> relationAttributes
 %type <attributeList> relationAttributeList
@@ -107,6 +109,17 @@ attribute
 	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK COMMA									{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
 	| VARNAME COLON ATTRIBUTE_TYPE KEY_KEYWORD COMMA									{ $$ = AttributeGrammarAction($1, $3, KEY); }
 	| VARNAME COLON OPEN_SQUARE_BRACKETS ATTRIBUTE_TYPE CLOSE_SQUARE_BRACKETS COMMA		{ $$ = AttributeGrammarAction($1, $3, MULTI); }
+	| VARNAME COLON COMPOUND_TYPE OPEN_PARENTHESIS compoundList CLOSE_PARENTHESIS COMMA { $$ = AttributeGrammarAction($1, INT, MULTI); }
+	;
+
+compoundList
+	: compoundAttribute
+	| compoundAttribute compoundList
+	;
+
+compoundAttribute
+	: VARNAME COLON ATTRIBUTE_TYPE COMMA												{ $$ = AttributeGrammarAction($1, $3, NOTNULL); }
+	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK COMMA									{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
 	;
 
 relation

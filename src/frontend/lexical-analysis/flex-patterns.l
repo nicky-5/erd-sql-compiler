@@ -47,6 +47,7 @@ whitespace		[ \f\n\r\t\v]
 "time"                                      { return AttributeTypePatternAction(yytext, yyleng, TIME); }
 
 "entity::"{varname}                         { return EntityTypePatternAction(yytext, yyleng); }
+"compound::"                                { return CompundTypePatternAction(); }
 
 "{"                                         { return OpenCurlyBracketsPatternAction(); }
 "}"                                         { return CloseCurlyBracketsPatternAction(); }
