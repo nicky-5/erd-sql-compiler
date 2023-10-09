@@ -36,6 +36,7 @@ whitespace		[ \f\n\r\t\v]
 "integer"                                   { return AttributeTypePatternAction(yytext, yyleng, INT); }
 "float"                                     { return AttributeTypePatternAction(yytext, yyleng, FLOAT); }
 "double"                                    { return AttributeTypePatternAction(yytext, yyleng, DOUBLE); }
+"uuid"                                      { return AttributeTypePatternAction(yytext, yyleng, UUID); }
 
 "text"                                      { return AttributeTypePatternAction(yytext, yyleng, TEXT); }
 "char"                                      { return AttributeTypePatternAction(yytext, yyleng, CHAR); }

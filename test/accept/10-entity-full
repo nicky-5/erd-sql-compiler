@@ -1,5 +1,5 @@
 entity Name {
-    firstvalue: integer, /* This is a normal attribute */
+    firstvalue: uuid, /* This is a normal attribute */
     secondvalue: char?, /*This is a nullable attribute */
     thirdvalue: double !key, /*This is a primary key */
     forthValue: compound::(
