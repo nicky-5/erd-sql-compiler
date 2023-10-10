@@ -88,24 +88,47 @@ int linkRelation(Program* program, Object* relation) {
     return 0;
 }
 
+boolean entityHasKey(Object* entity) {
+    AttributeList* node = entity->attributeList;
+    while (node != NULL) {
+        if (node->attribute->modifier == KEY) {
+            return true;
+        }
+
+        node = node->next;
+    }
+    return false;
+}
+
 int Linker(Program* program) {
     ObjectList* node = program->objectList;
     while (node != NULL) {
         Object* object = node->object;
 
+        // Check duplicate symbol, search through the remaining part of the list
         if (getReference(node->next, object->name) != NULL) {
             LogError("[Linker] Duplicate symbol '%s'", object->name);
             return 1;
         }
 
+        // Check local duplicate symbol, search all items
         if (checkLocalRedeclaration(object->attributeList) != 0) {
             return 2;
         }
 
+        // Check entity has a key
+        if (object->type == ENTITY) {
+            LogDebug("[Linker] Found entity '%s'", object->name);
+            if (!entityHasKey(object)) {
+                return 3;
+            }
+        }
+
+        // Link relations
         if (object->type == RELATION) {
             LogDebug("[Linker] Found relation '%s'", object->name);
             if (linkRelation(program, object) != 0) {
-                return 3;
+                return 4;
             }
         }
 
