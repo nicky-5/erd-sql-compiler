@@ -11,10 +11,14 @@ const char* getTypeName(AttributeType type) {
     switch (type) {
         case INT:
             return "integer";
+        case NUMERIC:
+            return "numeric";
         case FLOAT:
             return "float";
         case DOUBLE:
             return "double";
+        case UUID:
+            return "uuid";
         case TEXT:
             return "text";
         case CHAR:
@@ -25,6 +29,10 @@ const char* getTypeName(AttributeType type) {
             return "date";
         case TIME:
             return "time";
+        case TIMESTAMP:
+            return "timestamp";
+        case TIMESTAMPTZ:
+            return "timestamptz";
     }
     return NULL;
 }

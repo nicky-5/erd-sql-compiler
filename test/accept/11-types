@@ -1,0 +1,14 @@
+entity Types {
+    type00: int !key,
+    type01: numeric,
+    type02: float,
+    type03: double,
+    type04: uuid,
+    type05: text,
+    type06: char,
+    type07: bool,
+    type08: date,
+    type09: time,
+    type10: timestamp,
+    type11: timestamptz,
+}
