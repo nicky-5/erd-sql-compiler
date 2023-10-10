@@ -1,0 +1,4 @@
+entity Name {
+    pk: integer !key,
+    value: integer?,
+}

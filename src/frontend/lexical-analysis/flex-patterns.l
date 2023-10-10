@@ -17,7 +17,7 @@
 %x COMMENT
 
 /* Patrones reutilizables. */
-digit			[0-9]
+varname         [[:alpha:]_][[:alnum:]_]{0,29}
 endline			[\n]
 whitespace		[ \f\n\r\t\v]
 
@@ -28,15 +28,44 @@ whitespace		[ \f\n\r\t\v]
 <COMMENT>{endline}+							{ IgnoredPatternAction(yytext, yyleng); }
 <COMMENT>"*/"								{ EndCommentPatternAction(); BEGIN(INITIAL); }
 
-"+"											{ return AdditionOperatorPatternAction(yytext); }
-"-"											{ return SubtractionOperatorPatternAction(yytext); }
-"*"											{ return MultiplicationOperatorPatternAction(yytext); }
-"/"											{ return DivisionOperatorPatternAction(yytext); }
+"entity"                                    { return EntityKeywordPatternAction(); }
+"!key"                                      { return KeyKeywordPatternAction(); }
+"relation"                                  { return RelationKeywordPatternAction(); }
 
-"("											{ return OpenParenthesisPatternAction(yytext); }
-")"											{ return CloseParenthesisPatternAction(yytext); }
+"int"                                       { return AttributeTypePatternAction(yytext, yyleng, INT); }
+"integer"                                   { return AttributeTypePatternAction(yytext, yyleng, INT); }
+"numeric"                                   { return AttributeTypePatternAction(yytext, yyleng, NUMERIC); }
+"float"                                     { return AttributeTypePatternAction(yytext, yyleng, FLOAT); }
+"double"                                    { return AttributeTypePatternAction(yytext, yyleng, DOUBLE); }
 
-{digit}+									{ return IntegerPatternAction(yytext, yyleng); }
+"uuid"                                      { return AttributeTypePatternAction(yytext, yyleng, UUID); }
+"text"                                      { return AttributeTypePatternAction(yytext, yyleng, TEXT); }
+"char"                                      { return AttributeTypePatternAction(yytext, yyleng, CHAR); }
+
+"bool"                                      { return AttributeTypePatternAction(yytext, yyleng, BOOL); }
+"boolean"                                   { return AttributeTypePatternAction(yytext, yyleng, BOOL); }
+
+"date"                                      { return AttributeTypePatternAction(yytext, yyleng, DATE); }
+"time"                                      { return AttributeTypePatternAction(yytext, yyleng, TIME); }
+"timestamp"                                 { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMP); }
+"timestamptz"                               { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMPTZ); }
+
+"entity::"{varname}                         { return EntityTypePatternAction(yytext, yyleng); }
+"compound::"                                { return CompundTypePatternAction(); }
+
+"{"                                         { return OpenCurlyBracketsPatternAction(); }
+"}"                                         { return CloseCurlyBracketsPatternAction(); }
+"["                                         { return OpenSquareBracketsPatternAction(); }
+"]"                                         { return CloseSquareBracketsPatternAction(); }
+"("                                         { return OpenParenthesisPatternAction(); }
+")"                                         { return CloseParenthesisPatternAction(); }
+":"                                         { return ColonPatternAction(); }
+","                                         { return CommaPatternAction(); }
+"?"                                         { return QuestionMarkPatternAction(); }
+"1"                                         { return OnePatternAction(); }
+"M"                                         { return MPatternAction(); }
+
+{varname}                                   { return VarnamePatternAction(yytext, yyleng); }
 
 {whitespace}+								{ IgnoredPatternAction(yytext, yyleng); }
 

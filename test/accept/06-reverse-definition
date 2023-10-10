@@ -1,0 +1,7 @@
+relation Rel {
+    name: entity::Name(1),
+}
+
+entity Name {
+    number: int !key,
+}

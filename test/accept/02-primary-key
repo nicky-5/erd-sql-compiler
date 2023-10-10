@@ -1,0 +1,4 @@
+entity Name {
+    first: integer !key,
+    second: integer !key,
+}

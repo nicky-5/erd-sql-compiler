@@ -1,7 +1,9 @@
-#include "../../backend/support/logger.h"
 #include "flex-actions.h"
+
 #include <stdlib.h>
 #include <string.h>
+
+#include "../../backend/support/logger.h"
 
 /**
  * Implementación de "flex-actions.h".
@@ -19,79 +21,155 @@
  * (mediante $1, $2, $3, etc.).
  */
 
-char * copyLexeme(const char * lexeme, const int length) {
-	char * lexemeCopy = (char *) calloc(length + 1, sizeof(char));
-	strncpy(lexemeCopy, lexeme, length);
-	return lexemeCopy;
+char *copyLexeme(const char *lexeme, const int length) {
+    char *lexemeCopy = (char *)calloc(length + 1, sizeof(char));
+    strncpy(lexemeCopy, lexeme, length);
+    return lexemeCopy;
 }
 
-void BeginCommentPatternAction() {
-	LogDebug("[Flex] [COMMENT] BeginCommentPatternAction............................");
+void BeginCommentPatternAction() { LogDebug("[Flex] [COMMENT] BeginCommentPatternAction............................"); }
+
+void EndCommentPatternAction() { LogDebug("[Flex] [COMMENT] EndCommentPatternAction.............................."); }
+
+// KEYWORDS START
+token EntityKeywordPatternAction() {
+    LogDebug("[Flex] EntityKeywordPatternAction: 'entity'.");
+    yylval.token = ENTITY_KEYWORD;
+    return ENTITY_KEYWORD;
 }
 
-void EndCommentPatternAction() {
-	LogDebug("[Flex] [COMMENT] EndCommentPatternAction..............................");
+token KeyKeywordPatternAction() {
+    LogDebug("[Flex] KeyKeywordPatternAction: '!key'.");
+    yylval.token = KEY_KEYWORD;
+    return KEY_KEYWORD;
 }
 
-token AdditionOperatorPatternAction() {
-	LogDebug("[Flex] AdditionOperatorPatternAction: '+'.");
-	yylval.token = ADD;
-	return ADD;
+token RelationKeywordPatternAction() {
+    LogDebug("[Flex] RelationKeywordPatternAction: 'relation'.");
+    yylval.token = RELATION_KEYWORD;
+    return RELATION_KEYWORD;
+}
+// KEYWORDS END
+
+// TYPES START
+token AttributeTypePatternAction(const char *lexeme, const int length, AttributeType type) {
+    char *lexemeCopy = copyLexeme(lexeme, length);
+    LogDebug("[Flex] AttributeTypePatternAction: '%s'.", lexemeCopy);
+    free(lexemeCopy);
+    yylval.attributeType = type;
+    return ATTRIBUTE_TYPE;
 }
 
-token CloseParenthesisPatternAction() {
-	LogDebug("[Flex] CloseParenthesisPatternAction: ')'.");
-	yylval.token = CLOSE_PARENTHESIS;
-	return CLOSE_PARENTHESIS;
+token EntityTypePatternAction(const char *lexeme, const int length) {
+    char *lexemeCopy = copyLexeme(lexeme, length);
+    LogDebug("[Flex] EntityTypePatternAction: '%s'.", lexemeCopy);
+    strncpy(yylval.varname, lexemeCopy + 8, NAMEDATALEN);
+    free(lexemeCopy);
+    return ENTITY_TYPE;
 }
 
-token DivisionOperatorPatternAction() {
-	LogDebug("[Flex] DivisionOperatorPatternAction: '/'.");
-	yylval.token = DIV;
-	return DIV;
+token CompundTypePatternAction() {
+    LogDebug("[Flex] RelationKeywordPatternAction: 'composed::'.");
+    yylval.token = COMPOUND_TYPE;
+    return COMPOUND_TYPE;
+}
+// TYPES END
+
+// SYMBOLS START
+token OpenCurlyBracketsPatternAction() {
+    LogDebug("[Flex] OpenCurlyBracketsPatternAction: '{'.");
+    yylval.token = OPEN_CURLY_BRACKETS;
+    return OPEN_CURLY_BRACKETS;
 }
 
-token IntegerPatternAction(const char * lexeme, const int length) {
-	LogDebug("[Flex] IntegerPatternAction: '%s' (length = %d).", lexeme, length);
-	char * lexemeCopy = copyLexeme(lexeme, length);
-	yylval.integer = atoi(lexemeCopy);
-	free(lexemeCopy);
-	return INTEGER;
+token CloseCurlyBracketsPatternAction() {
+    LogDebug("[Flex] CloseCurlyBracketsPatternAction: '}'.");
+    yylval.token = CLOSE_CURLY_BRACKETS;
+    return CLOSE_CURLY_BRACKETS;
 }
 
-token MultiplicationOperatorPatternAction() {
-	LogDebug("[Flex] MultiplicationOperatorPatternAction: '*'.");
-	yylval.token = MUL;
-	return MUL;
+token OpenSquareBracketsPatternAction() {
+    LogDebug("[Flex] OpenSqaureBracketsPatternAction: '['.");
+    yylval.token = OPEN_SQUARE_BRACKETS;
+    return OPEN_SQUARE_BRACKETS;
+}
+
+token CloseSquareBracketsPatternAction() {
+    LogDebug("[Flex] CloseSquareBracketsPatternAction: ']'.");
+    yylval.token = CLOSE_SQUARE_BRACKETS;
+    return CLOSE_SQUARE_BRACKETS;
 }
 
 token OpenParenthesisPatternAction() {
-	LogDebug("[Flex] OpenParenthesisPatternAction: '('.");
-	yylval.token = OPEN_PARENTHESIS;
-	return OPEN_PARENTHESIS;
+    LogDebug("[Flex] OpenParenthesisPatternAction: '('.");
+    yylval.token = OPEN_PARENTHESIS;
+    return OPEN_PARENTHESIS;
 }
 
-token SubtractionOperatorPatternAction() {
-	LogDebug("[Flex] SubtractionOperatorPatternAction: '-'.");
-	yylval.token = SUB;
-	return SUB;
+token CloseParenthesisPatternAction() {
+    LogDebug("[Flex] CloseParenthesisPatternAction: ')'.");
+    yylval.token = CLOSE_PARENTHESIS;
+    return CLOSE_PARENTHESIS;
 }
 
-token UnknownPatternAction(const char * lexeme, const int length) {
-	char * lexemeCopy = copyLexeme(lexeme, length);
-	LogDebug("[Flex] UnknownPatternAction: '%s' (length = %d).", lexemeCopy, length);
-	free(lexemeCopy);
-	yylval.token = ERROR;
-	// Al emitir este token, el compilador aborta la ejecución.
-	return ERROR;
+token ColonPatternAction() {
+    LogDebug("[Flex] ColonPatternAction: ':'.");
+    yylval.token = COLON;
+    return COLON;
 }
 
-void IgnoredPatternAction(const char * lexeme, const int length) {
-	char * lexemeCopy = copyLexeme(lexeme, length);
-	LogRaw("[DEBUG] [Flex] IgnoredPatternAction: '");
-	LogText(lexemeCopy, length);
-	LogRaw("' (length = %d).\n", length);
-	free(lexemeCopy);
-	// Como no debe hacer nada con el patrón, solo se loguea en consola.
-	// No se emite ningún token.
+token CommaPatternAction() {
+    LogDebug("[Flex] CommaPatternAction: ','.");
+    yylval.token = COMMA;
+    return COMMA;
 }
+
+token QuestionMarkPatternAction() {
+    LogDebug("[Flex] QuestionMarkPatternAction: '?'.");
+    yylval.token = QUESTION_MARK;
+    return QUESTION_MARK;
+}
+
+token OnePatternAction() {
+    LogDebug("[Flex] OnePatternAction: '1'.");
+    yylval.token = NUM_ONE;
+    return NUM_ONE;
+}
+
+token MPatternAction() {
+    LogDebug("[Flex] MPatternAction: 'M'.");
+    yylval.token = LETTER_M;
+    return LETTER_M;
+}
+// SYMBOLS END
+
+// VALUES START
+token VarnamePatternAction(const char *lexeme, const int length) {
+    char *lexemeCopy = copyLexeme(lexeme, length);
+    LogDebug("[Flex] VarnamePatternAction: '%s' (length = %d).", lexemeCopy, length);
+    strncpy(yylval.varname, lexemeCopy, NAMEDATALEN);
+    free(lexemeCopy);
+    return VARNAME;
+}
+// VALUES END
+
+// OTHER START
+token UnknownPatternAction(const char *lexeme, const int length) {
+    char *lexemeCopy = copyLexeme(lexeme, length);
+    LogDebug("[Flex] UnknownPatternAction: '%s' (length = %d).", lexemeCopy, length);
+    free(lexemeCopy);
+    yylval.token = ERROR;
+    // Al emitir este token, el compilador aborta la ejecución.
+    return ERROR;
+}
+
+void IgnoredPatternAction(const char *lexeme, const int length) {
+    char *lexemeCopy = copyLexeme(lexeme, length);
+    LogRaw("[DEBUG] [Flex] IgnoredPatternAction: '");
+    LogText(lexemeCopy, length);
+    LogRaw("' (length = %d).\n", length);
+    free(lexemeCopy);
+    // Como no debe hacer nada con el patrón, solo se loguea en consola.
+    // No se emite ningún token.
+}
+// OTHER END

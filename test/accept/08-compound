@@ -1,0 +1,7 @@
+entity Something {
+    simple: int !key,
+    compoundAttr: compound::(
+        simple: int,
+        anotherSimple: int,
+    ),
+}

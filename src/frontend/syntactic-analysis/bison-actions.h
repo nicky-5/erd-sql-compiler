@@ -1,8 +1,8 @@
 #ifndef BISON_ACTIONS_HEADER
 #define BISON_ACTIONS_HEADER
 
+#include "../../backend/semantic-analysis/abstract-semantic-graph.h"
 #include "../../backend/support/shared.h"
-#include "../../backend/semantic-analysis/abstract-syntax-tree.h"
 
 /**
  * Se definen las acciones a ejecutar sobre cada regla de producción de la
@@ -11,21 +11,22 @@
  * abstracta (i.e., el AST).
  */
 
-// Programa.
-int ProgramGrammarAction(const int value);
+// Program
+Program* ProgramGrammarAction(ObjectList* objects);
 
-// Expresión.
-int AdditionExpressionGrammarAction(const int leftValue, const int rightValue);
-int SubtractionExpressionGrammarAction(const int leftValue, const int rightValue);
-int MultiplicationExpressionGrammarAction(const int leftValue, const int rightValue);
-int DivisionExpressionGrammarAction(const int leftValue, const int rightValue);
-int FactorExpressionGrammarAction(const int value);
+// Lists
+ObjectList* ObjectListGrammarAction(Object* object, ObjectList* next);
+AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* next);
 
-// Factores.
-int ExpressionFactorGrammarAction(const int value);
-int ConstantFactorGrammarAction(const int value);
+// Object variants
+Object* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes);
+Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, AttributeList* relationAttributeList);
 
-// Constantes.
-int IntegerConstantGrammarAction(const int value);
+// Attributes
+Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier);
+
+// Links
+Link* LinkGrammarAction(const char name[NAMEDATALEN], const char symbol[NAMEDATALEN], LinkModifier modifier);
+Link** LinkArrayGrammarAction(Link* linkA, Link* linkB, Link* linkC);
 
 #endif

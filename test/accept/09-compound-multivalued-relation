@@ -1,0 +1,17 @@
+entity One {
+    atr_1: char !key,
+    atr_2: compound::(
+        atr_3: int,
+        atr_4: int,
+    ),
+}
+
+entity Two {
+    atr_1: char !key,
+    atr_2: [integer],
+}
+
+relation Rel {
+    first: entity::One(1),
+    second: entity::Two(M),
+}
