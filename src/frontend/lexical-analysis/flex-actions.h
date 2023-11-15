@@ -15,7 +15,7 @@ token RelationKeywordPatternAction();
 
 // Types
 token AttributeTypePatternAction(const char* lexeme, const int length, AttributeType type);
-token EntityTypePatternAction(const char* lexeme, const int length);
+token EntityTypePatternAction();
 token CompoundTypePatternAction();
 
 // Symbols

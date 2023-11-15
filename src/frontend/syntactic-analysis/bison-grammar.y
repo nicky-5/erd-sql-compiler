@@ -4,9 +4,9 @@
 
 %}
 
-// Tipos de dato utilizados en las variables semánticas.
+// Data types
 %union {
-	// No-terminales.
+	// Non-terminal
 	Program* program;
 
 	ObjectList* objectList;
@@ -20,15 +20,14 @@
 	Link** linkArray;
 	LinkModifier linkModifier;
 
-	// Terminales.
+	// Terminal
 	token token;
 	char varname[64];
 }
 
-// Un token que jamás debe ser usado en la gramática.
+// Error token
 %token <token> ERROR
 
-// IDs y tipos de los tokens terminales generados desde Flex.
 // Keywords
 %token <token> ENTITY_KEYWORD
 %token <token> RELATION_KEYWORD
@@ -47,13 +46,13 @@
 %token <token> NUM_ONE
 %token <token> LETTER_M
 %token <token> COMPOUND_TYPE
+%token <token> ENTITY_TYPE
 
 // Values
 %token <varname> VARNAME
 %token <attributeType> ATTRIBUTE_TYPE
-%token <varname> ENTITY_TYPE
 
-// Tipos de dato para los no-terminales generados desde Bison.
+// Non-terminal symbols
 %type <program> program
 
 %type <objectList> objectList
@@ -73,7 +72,7 @@
 %type <link> linkAttribute
 %type <linkModifier> linkModifier
 
-// El símbolo inicial de la gramatica.
+// Initial symbol
 %start program
 
 %%
@@ -146,7 +145,7 @@ relation
 	;
 
 linkAttribute
-	: VARNAME[name] COLON ENTITY_TYPE[entityType] linkModifier[linkMod] COMMA			{ $$ = LinkGrammarAction($name, $entityType, $linkMod); }
+	: VARNAME[name] COLON ENTITY_TYPE VARNAME[entityType] linkModifier[linkMod] COMMA	{ $$ = LinkGrammarAction($name, $entityType, $linkMod); }
 	;
 
 linkModifier

@@ -4,19 +4,19 @@
 
 %}
 
-/* Obliga a crear una regla explícita para manejar lexemas desconocidos. */
+/* Handle unknown lexemmes explicitly */
 %option nodefault
 
-/* Escanea un único archivo y se detiene. */
+/* Scan only one file */
 %option noyywrap
 
-/* Dispone una variable global "yylineno" con el número de línea actual. */
+/* Enable line number global variable */
 %option yylineno
 
-/* Contextos de Flex. */
+/* Flex contexts */
 %x COMMENT
 
-/* Patrones reutilizables. */
+/* Reusable patters */
 varname         [[:alpha:]_][[:alnum:]_]{0,29}
 endline			[\n]
 whitespace		[ \f\n\r\t\v]
@@ -48,7 +48,7 @@ whitespace		[ \f\n\r\t\v]
 "timestamp"                                 { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMP); }
 "timestamptz"                               { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMPTZ); }
 
-"entity::"{varname}                         { return EntityTypePatternAction(yytext, yyleng); }
+"entity::"                                  { return EntityTypePatternAction(); }
 "compound::"                                { return CompoundTypePatternAction(); }
 
 "{"                                         { return OpenCurlyBracketsPatternAction(); }

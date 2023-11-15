@@ -44,16 +44,14 @@ token AttributeTypePatternAction(const char *lexeme, const int length, Attribute
     return ATTRIBUTE_TYPE;
 }
 
-token EntityTypePatternAction(const char *lexeme, const int length) {
-    char *lexemeCopy = copyLexeme(lexeme, length);
-    LogDebug("[Flex] EntityTypePatternAction: '%s'.", lexemeCopy);
-    strncpy(yylval.varname, lexemeCopy + 8, NAMEDATALEN);
-    free(lexemeCopy);
+token EntityTypePatternAction() {
+    LogDebug("[Flex] EntityTypePatternAction: 'entity::'.");
+    yylval.token = ENTITY_TYPE;
     return ENTITY_TYPE;
 }
 
 token CompoundTypePatternAction() {
-    LogDebug("[Flex] CompoundTypePatternAction: 'composed::'.");
+    LogDebug("[Flex] CompoundTypePatternAction: 'compound::'.");
     yylval.token = COMPOUND_TYPE;
     return COMPOUND_TYPE;
 }
