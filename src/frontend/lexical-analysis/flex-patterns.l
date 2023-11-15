@@ -33,7 +33,6 @@ whitespace		[ \f\n\r\t\v]
 "relation"                                  { return RelationKeywordPatternAction(); }
 
 "int"                                       { return AttributeTypePatternAction(yytext, yyleng, INT); }
-"integer"                                   { return AttributeTypePatternAction(yytext, yyleng, INT); }
 "numeric"                                   { return AttributeTypePatternAction(yytext, yyleng, NUMERIC); }
 "float"                                     { return AttributeTypePatternAction(yytext, yyleng, FLOAT); }
 "double"                                    { return AttributeTypePatternAction(yytext, yyleng, DOUBLE); }
@@ -43,7 +42,6 @@ whitespace		[ \f\n\r\t\v]
 "char"                                      { return AttributeTypePatternAction(yytext, yyleng, CHAR); }
 
 "bool"                                      { return AttributeTypePatternAction(yytext, yyleng, BOOL); }
-"boolean"                                   { return AttributeTypePatternAction(yytext, yyleng, BOOL); }
 
 "date"                                      { return AttributeTypePatternAction(yytext, yyleng, DATE); }
 "time"                                      { return AttributeTypePatternAction(yytext, yyleng, TIME); }
@@ -51,7 +49,7 @@ whitespace		[ \f\n\r\t\v]
 "timestamptz"                               { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMPTZ); }
 
 "entity::"{varname}                         { return EntityTypePatternAction(yytext, yyleng); }
-"compound::"                                { return CompundTypePatternAction(); }
+"compound::"                                { return CompoundTypePatternAction(); }
 
 "{"                                         { return OpenCurlyBracketsPatternAction(); }
 "}"                                         { return CloseCurlyBracketsPatternAction(); }

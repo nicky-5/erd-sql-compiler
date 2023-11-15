@@ -5,22 +5,6 @@
 
 #include "../../backend/support/logger.h"
 
-/**
- * Implementación de "flex-actions.h".
- *
- * Cada función debe realizar 2 operaciones básicas para lograr el streaming
- * de tokens hacia Bison:
- *
- *	1) Computar los atributos del token y almacenarlos donde sea conveniente
- *		(en la tabla de símbolos, en "yylval", o en ambos).
- *	2) Retornar el token que identifica el terminal identificado.
- *
- * Bison utilizará el token retornado en el punto (2) para matchear dicho
- * terminal en la gramática. Por otro lado, el valor almacenado en "yylval" es
- * el que Bison proveerá como valor semántico al realizar una reducción
- * (mediante $1, $2, $3, etc.).
- */
-
 char *copyLexeme(const char *lexeme, const int length) {
     char *lexemeCopy = (char *)calloc(length + 1, sizeof(char));
     strncpy(lexemeCopy, lexeme, length);
@@ -68,8 +52,8 @@ token EntityTypePatternAction(const char *lexeme, const int length) {
     return ENTITY_TYPE;
 }
 
-token CompundTypePatternAction() {
-    LogDebug("[Flex] RelationKeywordPatternAction: 'composed::'.");
+token CompoundTypePatternAction() {
+    LogDebug("[Flex] CompoundTypePatternAction: 'composed::'.");
     yylval.token = COMPOUND_TYPE;
     return COMPOUND_TYPE;
 }
@@ -89,7 +73,7 @@ token CloseCurlyBracketsPatternAction() {
 }
 
 token OpenSquareBracketsPatternAction() {
-    LogDebug("[Flex] OpenSqaureBracketsPatternAction: '['.");
+    LogDebug("[Flex] OpenSquareBracketsPatternAction: '['.");
     yylval.token = OPEN_SQUARE_BRACKETS;
     return OPEN_SQUARE_BRACKETS;
 }
@@ -159,7 +143,6 @@ token UnknownPatternAction(const char *lexeme, const int length) {
     LogDebug("[Flex] UnknownPatternAction: '%s' (length = %d).", lexemeCopy, length);
     free(lexemeCopy);
     yylval.token = ERROR;
-    // Al emitir este token, el compilador aborta la ejecución.
     return ERROR;
 }
 
@@ -169,7 +152,5 @@ void IgnoredPatternAction(const char *lexeme, const int length) {
     LogText(lexemeCopy, length);
     LogRaw("' (length = %d).\n", length);
     free(lexemeCopy);
-    // Como no debe hacer nada con el patrón, solo se loguea en consola.
-    // No se emite ningún token.
 }
 // OTHER END

@@ -7,15 +7,8 @@
 #include "../../backend/domain-specific/calculator.h"
 #include "../../backend/support/logger.h"
 
-/**
- * Implementación de "bison-actions.h".
- */
-
-/**
- * Esta función se ejecuta cada vez que se emite un error de sintaxis.
- */
 void yyerror(const char* string) {
-    LogErrorRaw("[ERROR] Mensaje: '%s', debido a '", string);
+    LogErrorRaw("[ERROR] Message: '%s', due to '", string);
     for (int i = 0; i < yyleng; ++i) {
         switch (yytext[i]) {
             case '\n':
@@ -24,7 +17,7 @@ void yyerror(const char* string) {
                 LogErrorRaw("%c", yytext[i]);
         }
     }
-    LogErrorRaw("' (length = %d, linea %d).\n\n", yyleng, yylineno);
+    LogErrorRaw("' (length = %d, line %d).\n\n", yyleng, yylineno);
 }
 
 const Object* getReference(ObjectList* list, const char symbol[NAMEDATALEN]) {
@@ -138,12 +131,6 @@ int Linker(Program* program) {
     return 0;
 }
 
-/**
- * Esta acción se corresponde con el no-terminal que representa el símbolo
- * inicial de la gramática, y por ende, es el último en ser ejecutado, lo que
- * indica que efectivamente el programa de entrada se pudo generar con esta
- * gramática, o lo que es lo mismo, que el programa pertenece al lenguaje.
- */
 Program* ProgramGrammarAction(ObjectList* objectList) {
     LogDebug("[Bison] ProgramGrammarAction");
     Program* program = malloc(sizeof(Program));

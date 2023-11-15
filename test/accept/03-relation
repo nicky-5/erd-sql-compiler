@@ -1,5 +1,5 @@
 entity Name {
-    value: integer !key,
+    value: int !key,
 }
 
 relation Rel {
