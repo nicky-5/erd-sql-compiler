@@ -81,9 +81,7 @@ void GenerateAttributes(AttributeList* node) {
     }
 }
 
-void GenerateEntityConstraints(const char* entityName, AttributeList* node) {
-    AttributeList* start = node;
-
+void GenerateKeyConstraints(const char* entityName, AttributeList* node) {
     boolean first = true;
     LogRaw(",\n    PRIMARY KEY (");
     while (node != NULL) {
@@ -111,7 +109,110 @@ void GenerateKeyAttributes(AttributeList* node, const char* variableName) {
     }
 }
 
-void GenerateRelationConstraints(AttributeList* list, const char variableName[NAMEDATALEN], const char entityName[NAMEDATALEN]) {
+void GenerateUniqueConstraint(AttributeList* nodeA, AttributeList* nodeB, AttributeList* nodeC, const char* prefixA, const char* prefixB, const char* prefixC) {
+    boolean first = true;
+    LogRaw("    UNIQUE (");
+    while (nodeA != NULL) {
+        if (nodeA->attribute->modifier == KEY) {
+            if (!first) {
+                LogRaw(", ");
+            }
+            LogRaw("\"%s$%s\"", prefixA, nodeA->attribute->name);
+            first = false;
+        }
+
+        nodeA = nodeA->next;
+    }
+    while (nodeB != NULL) {
+        if (nodeB->attribute->modifier == KEY) {
+            LogRaw(", \"%s$%s\"", prefixB, nodeB->attribute->name);
+            first = false;
+        }
+
+        nodeB = nodeB->next;
+    }
+    while (nodeC != NULL) {
+        if (nodeC->attribute->modifier == KEY) {
+            LogRaw(", \"%s$%s\"", prefixC, nodeC->attribute->name);
+            first = false;
+        }
+
+        nodeC = nodeC->next;
+    }
+    LogRaw("),\n");
+}
+
+void GenerateCardinalityConstraints(Link** links, int linksCount) {
+    AttributeList* attributes[3];
+    LinkModifier cardinality[3];
+    for (size_t i = 0; i < linksCount; i++) {
+        attributes[i] = links[i]->variant.reference->attributeList;
+        cardinality[i] = links[i]->modifier;
+    }
+
+    // Unary relation
+    if (linksCount == 1 && cardinality[0] == ONE) {
+        GenerateUniqueConstraint(attributes[0], NULL, NULL, links[0]->name, NULL, NULL);
+    }
+
+    // Binary relation
+    if (linksCount == 2) {
+        // 1:1 | 1:N
+        if (cardinality[0] == ONE) {
+            GenerateUniqueConstraint(attributes[0], NULL, NULL, links[0]->name, NULL, NULL);
+        }
+        if (cardinality[1] == ONE) {
+            GenerateUniqueConstraint(attributes[1], NULL, NULL, links[1]->name, NULL, NULL);
+        }
+        
+        // N:M
+        if (cardinality[0] == MANY && cardinality[1] == MANY) {
+            GenerateUniqueConstraint(attributes[0], attributes[1], NULL, links[0]->name, links[1]->name, NULL);
+        }
+    }
+
+    // Ternary relation
+    if (linksCount == 3) {
+        // N:M:P
+        if (cardinality[0] == MANY && cardinality[1] == MANY && cardinality[2] == MANY) {
+            GenerateUniqueConstraint(attributes[0], attributes[1], attributes[2], links[0]->name, links[1]->name, links[2]->name);
+        }
+
+        // 1:N:M
+        if (cardinality[0] == MANY && cardinality[1] == MANY && cardinality[2] == ONE) {
+            GenerateUniqueConstraint(attributes[0], attributes[1], NULL, links[0]->name, links[1]->name, NULL);
+        }
+        if (cardinality[0] == MANY && cardinality[1] == ONE && cardinality[2] == MANY) {
+            GenerateUniqueConstraint(attributes[0], attributes[2], NULL, links[0]->name, links[2]->name, NULL);
+        }
+        if (cardinality[0] == ONE && cardinality[1] == MANY && cardinality[2] == MANY) {
+            GenerateUniqueConstraint(attributes[1], attributes[2], NULL, links[1]->name, links[2]->name, NULL);
+        }
+
+        // 1:1:N
+        if (cardinality[0] == ONE && cardinality[1] == ONE && cardinality[2] == MANY) {
+            GenerateUniqueConstraint(attributes[0], attributes[2], NULL, links[0]->name, links[2]->name, NULL);
+            GenerateUniqueConstraint(attributes[1], attributes[2], NULL, links[1]->name, links[2]->name, NULL);
+        }
+        if (cardinality[0] == ONE && cardinality[1] == MANY && cardinality[2] == ONE) {
+            GenerateUniqueConstraint(attributes[0], attributes[1], NULL, links[0]->name, links[1]->name, NULL);
+            GenerateUniqueConstraint(attributes[2], attributes[1], NULL, links[2]->name, links[1]->name, NULL);
+        }
+        if (cardinality[0] == MANY && cardinality[1] == ONE && cardinality[2] == ONE) {
+            GenerateUniqueConstraint(attributes[1], attributes[0], NULL, links[1]->name, links[0]->name, NULL);
+            GenerateUniqueConstraint(attributes[2], attributes[0], NULL, links[2]->name, links[0]->name, NULL);
+        }
+
+        // 1:1:1
+        if (cardinality[0] == ONE && cardinality[1] == ONE && cardinality[2] == ONE) {
+            GenerateUniqueConstraint(attributes[0], attributes[1], NULL, links[0]->name, links[1]->name, NULL);
+            GenerateUniqueConstraint(attributes[1], attributes[2], NULL, links[1]->name, links[2]->name, NULL);
+            GenerateUniqueConstraint(attributes[0], attributes[2], NULL, links[0]->name, links[2]->name, NULL);
+        }
+    }
+}
+
+void GenerateForeignConstraints(AttributeList* list, const char variableName[NAMEDATALEN], const char entityName[NAMEDATALEN]) {
     boolean first = true;
     AttributeList* node = list;
     while (node != NULL) {
@@ -154,7 +255,7 @@ void GenerateRelationConstraints(AttributeList* list, const char variableName[NA
 void GenerateEntity(Object* entity) {
     LogRaw("CREATE TABLE \"%s\" (\n", entity->name);
     GenerateAttributes(entity->attributeList);
-    GenerateEntityConstraints(entity->name, entity->attributeList);
+    GenerateKeyConstraints(entity->name, entity->attributeList);
     LogRaw(");\n\n");
 
     AttributeList* attrNode = entity->attributeList;
@@ -164,7 +265,7 @@ void GenerateEntity(Object* entity) {
             LogRaw("CREATE TABLE \"%s$%s\" (\n", entity->name, attribute->name);
             GenerateKeyAttributes(entity->attributeList, entity->name);
             LogRaw("    \"%s\" %s NOT NULL,\n", attribute->name, getTypeName(attribute->type));
-            GenerateRelationConstraints(entity->attributeList, entity->name, entity->name);
+            GenerateForeignConstraints(entity->attributeList, entity->name, entity->name);
             LogRaw("\n);\n\n");
         }
         attrNode = attrNode->next;
@@ -191,6 +292,8 @@ void GenerateRelation(Object* relation) {
         LogRaw(",\n");
     }
 
+    GenerateCardinalityConstraints(relation->linkedObjects, relation->linksCount);
+
     boolean first = true;
     for (size_t i = 0; i < 3; i++) {
         if (linkedObjects[i] == NULL) {
@@ -204,7 +307,7 @@ void GenerateRelation(Object* relation) {
             }
 
             const Object* reference = linkedObjects[i]->variant.reference;
-            GenerateRelationConstraints(reference->attributeList, linkedObjects[i]->name, reference->name);
+            GenerateForeignConstraints(reference->attributeList, linkedObjects[i]->name, reference->name);
         }
     }
     if (!first) {

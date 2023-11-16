@@ -13,7 +13,7 @@ AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* n
 
 // Object variants
 Object* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes);
-Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, AttributeList* relationAttributeList);
+Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, int linksCount, AttributeList* attributes);
 
 // Attributes
 Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier);

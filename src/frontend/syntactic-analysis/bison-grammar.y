@@ -109,8 +109,9 @@ attribute
 	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK COMMA									{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
 	| VARNAME COLON ATTRIBUTE_TYPE EXCLAMATION_MARK KEY_KEYWORD COMMA					{ $$ = AttributeGrammarAction($1, $3, KEY); }
 	| VARNAME COLON OPEN_SQUARE_BRACKETS ATTRIBUTE_TYPE CLOSE_SQUARE_BRACKETS COMMA		{ $$ = AttributeGrammarAction($1, $4, MULTI); }
-	| VARNAME COLON COMPOUND_KEYWORD COLON COLON
-	  OPEN_PARENTHESIS compoundList[attrs] CLOSE_PARENTHESIS COMMA 						{ $$ = CompoundAttributeGrammarAction($1, $attrs); }
+	| VARNAME COLON COMPOUND_KEYWORD COLON COLON OPEN_PARENTHESIS 
+	  compoundList[attrs] 
+	  CLOSE_PARENTHESIS COMMA 															{ $$ = CompoundAttributeGrammarAction($1, $attrs); }
 	;
 
 compoundList
@@ -128,14 +129,13 @@ relation
 	  OPEN_CURLY_BRACKETS
 	  linkAttribute[link0]
 	  relationAttributes[attrs] 
-	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, NULL, NULL), $attrs); }
-
+	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, NULL, NULL), 1, $attrs); }
 	| RELATION_KEYWORD VARNAME[name]
 	  OPEN_CURLY_BRACKETS
 	  linkAttribute[link0]
 	  linkAttribute[link1]
 	  relationAttributes[attrs] 
-	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, $link1, NULL), $attrs); }
+	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, $link1, NULL), 2, $attrs); }
 
 	| RELATION_KEYWORD VARNAME[name]
 	  OPEN_CURLY_BRACKETS
@@ -143,7 +143,7 @@ relation
 	  linkAttribute[link1]
 	  linkAttribute[link2]
 	  relationAttributes[attrs] 
-	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, $link1, $link2), $attrs); }
+	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, $link1, $link2), 3, $attrs); }
 	;
 
 linkAttribute

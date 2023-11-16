@@ -47,6 +47,7 @@ struct Object {
     char name[NAMEDATALEN];
     AttributeList* attributeList;
     Link** linkedObjects;
+    int linksCount;
 };
 
 struct ObjectList {
