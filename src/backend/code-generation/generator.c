@@ -100,7 +100,7 @@ void GenerateEntityConstraints(const char* entityName, AttributeList* node) {
     LogRaw(")\n");
 }
 
-void GenerateRelationAttributes(AttributeList* node, const char* variableName) {
+void GenerateKeyAttributes(AttributeList* node, const char* variableName) {
     while (node != NULL) {
         Attribute* attribute = node->attribute;
         if (attribute->modifier == KEY) {
@@ -162,7 +162,7 @@ void GenerateEntity(Object* entity) {
         Attribute* attribute = attrNode->attribute;
         if (attribute->modifier == MULTI) {
             LogRaw("CREATE TABLE \"%s$%s\" (\n", entity->name, attribute->name);
-            GenerateRelationAttributes(entity->attributeList, entity->name);
+            GenerateKeyAttributes(entity->attributeList, entity->name);
             LogRaw("    \"%s\" %s NOT NULL,\n", attribute->name, getTypeName(attribute->type));
             GenerateRelationConstraints(entity->attributeList, entity->name, entity->name);
             LogRaw("\n);\n\n");
@@ -182,8 +182,13 @@ void GenerateRelation(Object* relation) {
         
         if (linkedObjects[i]->type == REFERENCE) {
             const Object* reference = linkedObjects[i]->variant.reference;
-            GenerateRelationAttributes(reference->attributeList, linkedObjects[i]->name);
+            GenerateKeyAttributes(reference->attributeList, linkedObjects[i]->name);
         }
+    }
+
+    GenerateAttributes(relation->attributeList);
+    if (relation->attributeList != NULL) {
+        LogRaw(",\n");
     }
 
     boolean first = true;
