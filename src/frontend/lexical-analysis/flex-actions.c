@@ -23,7 +23,7 @@ token EntityKeywordPatternAction() {
 }
 
 token KeyKeywordPatternAction() {
-    LogDebug("[Flex] KeyKeywordPatternAction: '!key'.");
+    LogDebug("[Flex] KeyKeywordPatternAction: 'key'.");
     yylval.token = KEY_KEYWORD;
     return KEY_KEYWORD;
 }
@@ -32,6 +32,12 @@ token RelationKeywordPatternAction() {
     LogDebug("[Flex] RelationKeywordPatternAction: 'relation'.");
     yylval.token = RELATION_KEYWORD;
     return RELATION_KEYWORD;
+}
+
+token CompoundKeywordPatternAction() {
+    LogDebug("[Flex] CompoundKeywordPatternAction: 'compound'.");
+    yylval.token = COMPOUND_KEYWORD;
+    return COMPOUND_KEYWORD;
 }
 // KEYWORDS END
 
@@ -42,18 +48,6 @@ token AttributeTypePatternAction(const char *lexeme, const int length, Attribute
     free(lexemeCopy);
     yylval.attributeType = type;
     return ATTRIBUTE_TYPE;
-}
-
-token EntityTypePatternAction() {
-    LogDebug("[Flex] EntityTypePatternAction: 'entity::'.");
-    yylval.token = ENTITY_TYPE;
-    return ENTITY_TYPE;
-}
-
-token CompoundTypePatternAction() {
-    LogDebug("[Flex] CompoundTypePatternAction: 'compound::'.");
-    yylval.token = COMPOUND_TYPE;
-    return COMPOUND_TYPE;
 }
 // TYPES END
 
@@ -110,6 +104,12 @@ token QuestionMarkPatternAction() {
     LogDebug("[Flex] QuestionMarkPatternAction: '?'.");
     yylval.token = QUESTION_MARK;
     return QUESTION_MARK;
+}
+
+token ExclamationMarkPatternAction() {
+    LogDebug("[Flex] ExclamationMarkPatternAction: '!'.");
+    yylval.token = EXCLAMATION_MARK;
+    return EXCLAMATION_MARK;
 }
 
 token OnePatternAction() {

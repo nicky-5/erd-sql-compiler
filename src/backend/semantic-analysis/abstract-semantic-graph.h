@@ -5,7 +5,7 @@
 
 typedef enum ObjectType { ENTITY, RELATION } ObjectType;
 
-typedef enum AttributeType { INT, NUMERIC, FLOAT, DOUBLE, TEXT, CHAR, BOOL, DATE, TIME, TIMESTAMP, TIMESTAMPTZ, UUID } AttributeType;
+typedef enum AttributeType { INT, NUMERIC, FLOAT, DOUBLE, TEXT, CHAR, BOOL, DATE, TIME, TIMESTAMP, TIMESTAMPTZ, UUID, COMPOUND } AttributeType;
 typedef enum AttributeModifier { NOTNULL, NULLABLE, KEY, MULTI } AttributeModifier;
 
 typedef struct Link Link;
@@ -34,6 +34,7 @@ typedef struct Attribute {
     char name[NAMEDATALEN];
     AttributeType type;
     AttributeModifier modifier;
+    AttributeList* nested;
 } Attribute;
 
 struct AttributeList {

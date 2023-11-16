@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../backend/domain-specific/calculator.h"
 #include "../../backend/support/logger.h"
 
 void yyerror(const char* string) {
@@ -81,8 +80,8 @@ int linkRelation(Program* program, Object* relation) {
     return 0;
 }
 
-boolean entityHasKey(Object* entity) {
-    AttributeList* node = entity->attributeList;
+boolean attributesContainKey(AttributeList* attributeList) {
+    AttributeList* node = attributeList;
     while (node != NULL) {
         if (node->attribute->modifier == KEY) {
             return true;
@@ -112,7 +111,7 @@ int Linker(Program* program) {
         // Check entity has a key
         if (object->type == ENTITY) {
             LogDebug("[Linker] Found entity '%s'", object->name);
-            if (!entityHasKey(object)) {
+            if (!attributesContainKey(object->attributeList)) {
                 return 3;
             }
         }
@@ -184,6 +183,16 @@ Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType ty
     strncpy(attribute->name, name, NAMEDATALEN);
     attribute->type = type;
     attribute->modifier = modifier;
+    return attribute;
+}
+
+Attribute* CompoundAttributeGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
+    LogDebug("[Bison] CompoundAttributeGrammarAction(name='%s')", name);
+
+    Attribute* attribute = malloc(sizeof(Attribute));
+    strncpy(attribute->name, name, NAMEDATALEN);
+    attribute->type = COMPOUND;
+    attribute->nested = attributes;
     return attribute;
 }
 

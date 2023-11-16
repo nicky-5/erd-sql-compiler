@@ -12,11 +12,10 @@ void EndCommentPatternAction();
 token EntityKeywordPatternAction();
 token KeyKeywordPatternAction();
 token RelationKeywordPatternAction();
+token CompoundKeywordPatternAction();
 
 // Types
 token AttributeTypePatternAction(const char* lexeme, const int length, AttributeType type);
-token EntityTypePatternAction();
-token CompoundTypePatternAction();
 
 // Symbols
 token OpenCurlyBracketsPatternAction();
@@ -28,6 +27,7 @@ token CloseParenthesisPatternAction();
 token ColonPatternAction();
 token CommaPatternAction();
 token QuestionMarkPatternAction();
+token ExclamationMarkPatternAction();
 token OnePatternAction();
 token MPatternAction();
 

@@ -29,8 +29,9 @@ whitespace		[ \f\n\r\t\v]
 <COMMENT>"*/"								{ EndCommentPatternAction(); BEGIN(INITIAL); }
 
 "entity"                                    { return EntityKeywordPatternAction(); }
-"!key"                                      { return KeyKeywordPatternAction(); }
+"key"                                       { return KeyKeywordPatternAction(); }
 "relation"                                  { return RelationKeywordPatternAction(); }
+"compound"                                  { return CompoundKeywordPatternAction(); }
 
 "int"                                       { return AttributeTypePatternAction(yytext, yyleng, INT); }
 "numeric"                                   { return AttributeTypePatternAction(yytext, yyleng, NUMERIC); }
@@ -48,9 +49,6 @@ whitespace		[ \f\n\r\t\v]
 "timestamp"                                 { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMP); }
 "timestamptz"                               { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMPTZ); }
 
-"entity::"                                  { return EntityTypePatternAction(); }
-"compound::"                                { return CompoundTypePatternAction(); }
-
 "{"                                         { return OpenCurlyBracketsPatternAction(); }
 "}"                                         { return CloseCurlyBracketsPatternAction(); }
 "["                                         { return OpenSquareBracketsPatternAction(); }
@@ -60,6 +58,7 @@ whitespace		[ \f\n\r\t\v]
 ":"                                         { return ColonPatternAction(); }
 ","                                         { return CommaPatternAction(); }
 "?"                                         { return QuestionMarkPatternAction(); }
+"!"                                         { return ExclamationMarkPatternAction(); }
 "1"                                         { return OnePatternAction(); }
 "M"                                         { return MPatternAction(); }
 

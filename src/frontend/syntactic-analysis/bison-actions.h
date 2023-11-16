@@ -17,6 +17,7 @@ Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, Attrib
 
 // Attributes
 Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier);
+Attribute* CompoundAttributeGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes);
 
 // Links
 Link* LinkGrammarAction(const char name[NAMEDATALEN], const char symbol[NAMEDATALEN], LinkModifier modifier);
