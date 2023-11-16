@@ -33,27 +33,7 @@ const char* getTypeName(AttributeType type) {
     return NULL;
 }
 
-void LogRawKeyConstraints(AttributeList* node) {
-    boolean first = true;
-    while (node != NULL) {
-        if (node->attribute->modifier == KEY) {
-            if (first) {
-                LogRaw(",\n    PRIMARY KEY (");
-                first = false;
-            } else {
-                LogRaw(", ");
-            }
-            LogRaw("\"%s\"", node->attribute->name);
-        }
-
-        node = node->next;
-    }
-    if (!first) {
-        LogRaw(")\n");
-    }
-}
-
-void LogRawCompoundAttributes(const char* name, AttributeList* node) {
+void GenerateCompoundAttributes(const char* name, AttributeList* node) {
     while (node != NULL) {
         Attribute* attribute = node->attribute;
         if (attribute->type == COMPOUND) {
@@ -74,20 +54,26 @@ void LogRawCompoundAttributes(const char* name, AttributeList* node) {
     }
 }
 
-void LogRawAttributes(AttributeList* node) {
+void GenerateAttributes(AttributeList* node) {
+    boolean first = true;
     while (node != NULL) {
         Attribute* attribute = node->attribute;
         if (attribute->type == COMPOUND) {
-            LogRawCompoundAttributes(attribute->name, attribute->nested);
-        } else {
+            if (!first) {
+                LogRaw(",\n");
+            }
+            GenerateCompoundAttributes(attribute->name, attribute->nested);
+            first = false;
+        } else if (attribute->modifier != MULTI) {
+            if (!first) {
+                LogRaw(",\n");
+            }
+            first = false;
+
             LogRaw("    \"%s\" %s", attribute->name, getTypeName(attribute->type));
 
             if (attribute->modifier != NULLABLE) {
                 LogRaw(" NOT NULL");
-            }
-
-            if (node->next != NULL) {
-                LogRaw(",\n");
             }
         }
 
@@ -95,7 +81,26 @@ void LogRawAttributes(AttributeList* node) {
     }
 }
 
-void LogRawForeignKeys(AttributeList* node, const char* variableName) {
+void GenerateEntityConstraints(const char* entityName, AttributeList* node) {
+    AttributeList* start = node;
+
+    boolean first = true;
+    LogRaw(",\n    PRIMARY KEY (");
+    while (node != NULL) {
+        if (node->attribute->modifier == KEY) {
+            if (!first) {
+                LogRaw(", ");
+            }
+            LogRaw("\"%s\"", node->attribute->name);
+            first = false;
+        }
+
+        node = node->next;
+    }
+    LogRaw(")\n");
+}
+
+void GenerateRelationAttributes(AttributeList* node, const char* variableName) {
     while (node != NULL) {
         Attribute* attribute = node->attribute;
         if (attribute->modifier == KEY) {
@@ -106,7 +111,7 @@ void LogRawForeignKeys(AttributeList* node, const char* variableName) {
     }
 }
 
-void LogRawForeignKeyConstraints(AttributeList* list, const char variableName[NAMEDATALEN], const char entityName[NAMEDATALEN]) {
+void GenerateRelationConstraints(AttributeList* list, const char variableName[NAMEDATALEN], const char entityName[NAMEDATALEN]) {
     boolean first = true;
     AttributeList* node = list;
     while (node != NULL) {
@@ -146,7 +151,30 @@ void LogRawForeignKeyConstraints(AttributeList* list, const char variableName[NA
     }
 }
 
-void LogRawLinkAttributes(Link** linkedObjects) {
+void GenerateEntity(Object* entity) {
+    LogRaw("CREATE TABLE \"%s\" (\n", entity->name);
+    GenerateAttributes(entity->attributeList);
+    GenerateEntityConstraints(entity->name, entity->attributeList);
+    LogRaw(");\n\n");
+
+    AttributeList* attrNode = entity->attributeList;
+    while (attrNode != NULL) {
+        Attribute* attribute = attrNode->attribute;
+        if (attribute->modifier == MULTI) {
+            LogRaw("CREATE TABLE \"%s$%s\" (\n", entity->name, attribute->name);
+            GenerateRelationAttributes(entity->attributeList, entity->name);
+            LogRaw("    \"%s\" %s NOT NULL,\n", attribute->name, getTypeName(attribute->type));
+            GenerateRelationConstraints(entity->attributeList, entity->name, entity->name);
+            LogRaw("\n);\n\n");
+        }
+        attrNode = attrNode->next;
+    }
+}
+
+void GenerateRelation(Object* relation) {
+    LogRaw("CREATE TABLE \"%s\" (\n", relation->name);
+    Link** linkedObjects = relation->linkedObjects;
+
     for (size_t i = 0; i < 3; i++) {
         if (linkedObjects[i] == NULL) {
             break;
@@ -154,12 +182,10 @@ void LogRawLinkAttributes(Link** linkedObjects) {
         
         if (linkedObjects[i]->type == REFERENCE) {
             const Object* reference = linkedObjects[i]->variant.reference;
-            LogRawForeignKeys(reference->attributeList, linkedObjects[i]->name);
+            GenerateRelationAttributes(reference->attributeList, linkedObjects[i]->name);
         }
     }
-}
 
-void LogRawLinkConstraints(Link** linkedObjects) {
     boolean first = true;
     for (size_t i = 0; i < 3; i++) {
         if (linkedObjects[i] == NULL) {
@@ -173,12 +199,14 @@ void LogRawLinkConstraints(Link** linkedObjects) {
             }
 
             const Object* reference = linkedObjects[i]->variant.reference;
-            LogRawForeignKeyConstraints(reference->attributeList, linkedObjects[i]->name, reference->name);
+            GenerateRelationConstraints(reference->attributeList, linkedObjects[i]->name, reference->name);
         }
     }
     if (!first) {
         LogRaw("\n");
     }
+
+    LogRaw(");\n\n");
 }
 
 void Generator(Program* program) {
@@ -186,10 +214,7 @@ void Generator(Program* program) {
     while (node != NULL) {
         Object* object = node->object;
         if (object->type == ENTITY) {
-            LogRaw("CREATE TABLE \"%s\" (\n", object->name);
-            LogRawAttributes(object->attributeList);
-            LogRawKeyConstraints(object->attributeList);
-            LogRaw(");\n\n");
+            GenerateEntity(object);
         }
         node = node->next;
     }
@@ -198,10 +223,7 @@ void Generator(Program* program) {
     while (node != NULL) {
         Object* object = node->object;
         if (object->type == RELATION) {
-            LogRaw("CREATE TABLE \"%s\" (\n", object->name);
-            LogRawLinkAttributes(object->linkedObjects);
-            LogRawLinkConstraints(object->linkedObjects);
-            LogRaw(");\n\n");
+            GenerateRelation(object);
         }
         node = node->next;
     }

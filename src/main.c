@@ -5,41 +5,33 @@
 #include "backend/support/shared.h"
 #include "frontend/syntactic-analysis/bison-parser.h"
 
-// Estado de la aplicación.
 CompilerState state;
 
-// Punto de entrada principal del compilador.
 const int main(const int argumentCount, const char** arguments) {
-    // Inicializar estado de la aplicación.
-
-    // Mostrar parámetros recibidos por consola.
     for (int i = 0; i < argumentCount; ++i) {
-        LogInfo("Argumento %d: '%s'", i, arguments[i]);
+        LogInfo("Argument %d: '%s'", i, arguments[i]);
     }
 
-    // Compilar el programa de entrada.
-    LogInfo("Compilando...\n");
+    LogInfo("Compiling...\n");
     const int result = yyparse();
     switch (result) {
         case 0:
-            // La variable "succeed" es la que setea Bison al identificar el símbolo
-            // inicial de la gramática satisfactoriamente.
             if (state.succeed) {
-                LogInfo("La compilacion fue exitosa.");
+                LogInfo("Compiled successfully.\n");
                 Generator(state.program);
             } else {
-                LogError("Se produjo un error en la aplicacion.");
+                LogError("Linker error.");
                 return -1;
             }
             break;
         case 1:
-            LogError("Bison finalizo debido a un error de sintaxis.");
+            LogError("Syntax error.");
             break;
         case 2:
-            LogError("Bison finalizo abruptamente debido a que ya no hay memoria disponible.");
+            LogError("Memory error.");
             break;
         default:
-            LogError("Error desconocido mientras se ejecutaba el analizador Bison (codigo %d).", result);
+            LogError("Unknown error (code %d).", result);
     }
     LogInfo("Fin.");
     return result;
