@@ -1,4 +1,4 @@
 entity Name {
-    first: integer !key,
-    second: integer !key,
+    first: int !key,
+    second: int !key,
 }

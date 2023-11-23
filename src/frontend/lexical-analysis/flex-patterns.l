@@ -4,19 +4,19 @@
 
 %}
 
-/* Obliga a crear una regla explícita para manejar lexemas desconocidos. */
+/* Handle unknown lexemmes explicitly */
 %option nodefault
 
-/* Escanea un único archivo y se detiene. */
+/* Scan only one file */
 %option noyywrap
 
-/* Dispone una variable global "yylineno" con el número de línea actual. */
+/* Enable line number global variable */
 %option yylineno
 
-/* Contextos de Flex. */
+/* Flex contexts */
 %x COMMENT
 
-/* Patrones reutilizables. */
+/* Reusable patters */
 varname         [[:alpha:]_][[:alnum:]_]{0,29}
 endline			[\n]
 whitespace		[ \f\n\r\t\v]
@@ -29,11 +29,11 @@ whitespace		[ \f\n\r\t\v]
 <COMMENT>"*/"								{ EndCommentPatternAction(); BEGIN(INITIAL); }
 
 "entity"                                    { return EntityKeywordPatternAction(); }
-"!key"                                      { return KeyKeywordPatternAction(); }
+"key"                                       { return KeyKeywordPatternAction(); }
 "relation"                                  { return RelationKeywordPatternAction(); }
+"compound"                                  { return CompoundKeywordPatternAction(); }
 
 "int"                                       { return AttributeTypePatternAction(yytext, yyleng, INT); }
-"integer"                                   { return AttributeTypePatternAction(yytext, yyleng, INT); }
 "numeric"                                   { return AttributeTypePatternAction(yytext, yyleng, NUMERIC); }
 "float"                                     { return AttributeTypePatternAction(yytext, yyleng, FLOAT); }
 "double"                                    { return AttributeTypePatternAction(yytext, yyleng, DOUBLE); }
@@ -43,15 +43,11 @@ whitespace		[ \f\n\r\t\v]
 "char"                                      { return AttributeTypePatternAction(yytext, yyleng, CHAR); }
 
 "bool"                                      { return AttributeTypePatternAction(yytext, yyleng, BOOL); }
-"boolean"                                   { return AttributeTypePatternAction(yytext, yyleng, BOOL); }
 
 "date"                                      { return AttributeTypePatternAction(yytext, yyleng, DATE); }
 "time"                                      { return AttributeTypePatternAction(yytext, yyleng, TIME); }
 "timestamp"                                 { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMP); }
 "timestamptz"                               { return AttributeTypePatternAction(yytext, yyleng, TIMESTAMPTZ); }
-
-"entity::"{varname}                         { return EntityTypePatternAction(yytext, yyleng); }
-"compound::"                                { return CompundTypePatternAction(); }
 
 "{"                                         { return OpenCurlyBracketsPatternAction(); }
 "}"                                         { return CloseCurlyBracketsPatternAction(); }
@@ -62,6 +58,7 @@ whitespace		[ \f\n\r\t\v]
 ":"                                         { return ColonPatternAction(); }
 ","                                         { return CommaPatternAction(); }
 "?"                                         { return QuestionMarkPatternAction(); }
+"!"                                         { return ExclamationMarkPatternAction(); }
 "1"                                         { return OnePatternAction(); }
 "M"                                         { return MPatternAction(); }
 

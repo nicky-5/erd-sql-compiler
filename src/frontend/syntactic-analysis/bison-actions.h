@@ -4,13 +4,6 @@
 #include "../../backend/semantic-analysis/abstract-semantic-graph.h"
 #include "../../backend/support/shared.h"
 
-/**
- * Se definen las acciones a ejecutar sobre cada regla de producción de la
- * gramática. El objetivo de cada acción debe ser el de construir el nodo
- * adecuado que almacene la información requerida en el árbol de sintaxis
- * abstracta (i.e., el AST).
- */
-
 // Program
 Program* ProgramGrammarAction(ObjectList* objects);
 
@@ -20,10 +13,11 @@ AttributeList* AttributeListGrammarAction(Attribute* attribute, AttributeList* n
 
 // Object variants
 Object* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes);
-Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, AttributeList* relationAttributeList);
+Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, int linksCount, AttributeList* attributes);
 
 // Attributes
 Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType type, AttributeModifier modifier);
+Attribute* CompoundAttributeGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes);
 
 // Links
 Link* LinkGrammarAction(const char name[NAMEDATALEN], const char symbol[NAMEDATALEN], LinkModifier modifier);

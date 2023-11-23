@@ -8,7 +8,7 @@ entity One {
 
 entity Two {
     atr_1: char !key,
-    atr_2: [integer],
+    atr_2: [int],
 }
 
 relation Rel {

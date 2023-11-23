@@ -4,9 +4,9 @@
 
 %}
 
-// Tipos de dato utilizados en las variables semánticas.
+// Data types
 %union {
-	// No-terminales.
+	// Non-terminal
 	Program* program;
 
 	ObjectList* objectList;
@@ -20,19 +20,19 @@
 	Link** linkArray;
 	LinkModifier linkModifier;
 
-	// Terminales.
+	// Terminal
 	token token;
 	char varname[64];
 }
 
-// Un token que jamás debe ser usado en la gramática.
+// Error token
 %token <token> ERROR
 
-// IDs y tipos de los tokens terminales generados desde Flex.
 // Keywords
 %token <token> ENTITY_KEYWORD
 %token <token> RELATION_KEYWORD
 %token <token> KEY_KEYWORD
+%token <token> COMPOUND_KEYWORD
 
 // Symbols
 %token <token> OPEN_CURLY_BRACKETS
@@ -44,16 +44,15 @@
 %token <token> COLON
 %token <token> COMMA
 %token <token> QUESTION_MARK
+%token <token> EXCLAMATION_MARK
 %token <token> NUM_ONE
 %token <token> LETTER_M
-%token <token> COMPOUND_TYPE
 
 // Values
 %token <varname> VARNAME
 %token <attributeType> ATTRIBUTE_TYPE
-%token <varname> ENTITY_TYPE
 
-// Tipos de dato para los no-terminales generados desde Bison.
+// Non-terminal symbols
 %type <program> program
 
 %type <objectList> objectList
@@ -63,6 +62,7 @@
 %type <object> relation
 
 %type <attributeList> attributeList
+%type <attributeList> compoundList
 %type <attribute> attribute
 %type <attribute> compoundAttribute
 
@@ -73,7 +73,7 @@
 %type <link> linkAttribute
 %type <linkModifier> linkModifier
 
-// El símbolo inicial de la gramatica.
+// Initial symbol
 %start program
 
 %%
@@ -107,14 +107,16 @@ attributeList
 attribute
 	: VARNAME COLON ATTRIBUTE_TYPE COMMA												{ $$ = AttributeGrammarAction($1, $3, NOTNULL); }
 	| VARNAME COLON ATTRIBUTE_TYPE QUESTION_MARK COMMA									{ $$ = AttributeGrammarAction($1, $3, NULLABLE); }
-	| VARNAME COLON ATTRIBUTE_TYPE KEY_KEYWORD COMMA									{ $$ = AttributeGrammarAction($1, $3, KEY); }
-	| VARNAME COLON OPEN_SQUARE_BRACKETS ATTRIBUTE_TYPE CLOSE_SQUARE_BRACKETS COMMA		{ $$ = AttributeGrammarAction($1, $3, MULTI); }
-	| VARNAME COLON COMPOUND_TYPE OPEN_PARENTHESIS compoundList CLOSE_PARENTHESIS COMMA { $$ = AttributeGrammarAction($1, INT, MULTI); }
+	| VARNAME COLON ATTRIBUTE_TYPE EXCLAMATION_MARK KEY_KEYWORD COMMA					{ $$ = AttributeGrammarAction($1, $3, KEY); }
+	| VARNAME COLON OPEN_SQUARE_BRACKETS ATTRIBUTE_TYPE CLOSE_SQUARE_BRACKETS COMMA		{ $$ = AttributeGrammarAction($1, $4, MULTI); }
+	| VARNAME COLON COMPOUND_KEYWORD COLON COLON OPEN_PARENTHESIS 
+	  compoundList[attrs] 
+	  CLOSE_PARENTHESIS COMMA 															{ $$ = CompoundAttributeGrammarAction($1, $attrs); }
 	;
 
 compoundList
-	: compoundAttribute
-	| compoundAttribute compoundList
+	: compoundAttribute																	{ $$ = AttributeListGrammarAction($1, NULL); }
+	| compoundAttribute compoundList													{ $$ = AttributeListGrammarAction($1, $2); }
 	;
 
 compoundAttribute
@@ -127,14 +129,13 @@ relation
 	  OPEN_CURLY_BRACKETS
 	  linkAttribute[link0]
 	  relationAttributes[attrs] 
-	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, NULL, NULL), $attrs); }
-
+	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, NULL, NULL), 1, $attrs); }
 	| RELATION_KEYWORD VARNAME[name]
 	  OPEN_CURLY_BRACKETS
 	  linkAttribute[link0]
 	  linkAttribute[link1]
 	  relationAttributes[attrs] 
-	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, $link1, NULL), $attrs); }
+	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, $link1, NULL), 2, $attrs); }
 
 	| RELATION_KEYWORD VARNAME[name]
 	  OPEN_CURLY_BRACKETS
@@ -142,11 +143,12 @@ relation
 	  linkAttribute[link1]
 	  linkAttribute[link2]
 	  relationAttributes[attrs] 
-	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, $link1, $link2), $attrs); }
+	  CLOSE_CURLY_BRACKETS																{ $$ = RelationGrammarAction($name, LinkArrayGrammarAction($link0, $link1, $link2), 3, $attrs); }
 	;
 
 linkAttribute
-	: VARNAME[name] COLON ENTITY_TYPE[entityType] linkModifier[linkMod] COMMA			{ $$ = LinkGrammarAction($name, $entityType, $linkMod); }
+	: VARNAME[name] COLON ENTITY_KEYWORD COLON COLON
+	  VARNAME[entityType] linkModifier[linkMod] COMMA									{ $$ = LinkGrammarAction($name, $entityType, $linkMod); }
 	;
 
 linkModifier

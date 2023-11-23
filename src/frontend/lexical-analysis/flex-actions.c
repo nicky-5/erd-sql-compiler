@@ -5,22 +5,6 @@
 
 #include "../../backend/support/logger.h"
 
-/**
- * Implementación de "flex-actions.h".
- *
- * Cada función debe realizar 2 operaciones básicas para lograr el streaming
- * de tokens hacia Bison:
- *
- *	1) Computar los atributos del token y almacenarlos donde sea conveniente
- *		(en la tabla de símbolos, en "yylval", o en ambos).
- *	2) Retornar el token que identifica el terminal identificado.
- *
- * Bison utilizará el token retornado en el punto (2) para matchear dicho
- * terminal en la gramática. Por otro lado, el valor almacenado en "yylval" es
- * el que Bison proveerá como valor semántico al realizar una reducción
- * (mediante $1, $2, $3, etc.).
- */
-
 char *copyLexeme(const char *lexeme, const int length) {
     char *lexemeCopy = (char *)calloc(length + 1, sizeof(char));
     strncpy(lexemeCopy, lexeme, length);
@@ -39,7 +23,7 @@ token EntityKeywordPatternAction() {
 }
 
 token KeyKeywordPatternAction() {
-    LogDebug("[Flex] KeyKeywordPatternAction: '!key'.");
+    LogDebug("[Flex] KeyKeywordPatternAction: 'key'.");
     yylval.token = KEY_KEYWORD;
     return KEY_KEYWORD;
 }
@@ -48,6 +32,12 @@ token RelationKeywordPatternAction() {
     LogDebug("[Flex] RelationKeywordPatternAction: 'relation'.");
     yylval.token = RELATION_KEYWORD;
     return RELATION_KEYWORD;
+}
+
+token CompoundKeywordPatternAction() {
+    LogDebug("[Flex] CompoundKeywordPatternAction: 'compound'.");
+    yylval.token = COMPOUND_KEYWORD;
+    return COMPOUND_KEYWORD;
 }
 // KEYWORDS END
 
@@ -58,20 +48,6 @@ token AttributeTypePatternAction(const char *lexeme, const int length, Attribute
     free(lexemeCopy);
     yylval.attributeType = type;
     return ATTRIBUTE_TYPE;
-}
-
-token EntityTypePatternAction(const char *lexeme, const int length) {
-    char *lexemeCopy = copyLexeme(lexeme, length);
-    LogDebug("[Flex] EntityTypePatternAction: '%s'.", lexemeCopy);
-    strncpy(yylval.varname, lexemeCopy + 8, NAMEDATALEN);
-    free(lexemeCopy);
-    return ENTITY_TYPE;
-}
-
-token CompundTypePatternAction() {
-    LogDebug("[Flex] RelationKeywordPatternAction: 'composed::'.");
-    yylval.token = COMPOUND_TYPE;
-    return COMPOUND_TYPE;
 }
 // TYPES END
 
@@ -89,7 +65,7 @@ token CloseCurlyBracketsPatternAction() {
 }
 
 token OpenSquareBracketsPatternAction() {
-    LogDebug("[Flex] OpenSqaureBracketsPatternAction: '['.");
+    LogDebug("[Flex] OpenSquareBracketsPatternAction: '['.");
     yylval.token = OPEN_SQUARE_BRACKETS;
     return OPEN_SQUARE_BRACKETS;
 }
@@ -130,6 +106,12 @@ token QuestionMarkPatternAction() {
     return QUESTION_MARK;
 }
 
+token ExclamationMarkPatternAction() {
+    LogDebug("[Flex] ExclamationMarkPatternAction: '!'.");
+    yylval.token = EXCLAMATION_MARK;
+    return EXCLAMATION_MARK;
+}
+
 token OnePatternAction() {
     LogDebug("[Flex] OnePatternAction: '1'.");
     yylval.token = NUM_ONE;
@@ -159,7 +141,6 @@ token UnknownPatternAction(const char *lexeme, const int length) {
     LogDebug("[Flex] UnknownPatternAction: '%s' (length = %d).", lexemeCopy, length);
     free(lexemeCopy);
     yylval.token = ERROR;
-    // Al emitir este token, el compilador aborta la ejecución.
     return ERROR;
 }
 
@@ -169,7 +150,5 @@ void IgnoredPatternAction(const char *lexeme, const int length) {
     LogText(lexemeCopy, length);
     LogRaw("' (length = %d).\n", length);
     free(lexemeCopy);
-    // Como no debe hacer nada con el patrón, solo se loguea en consola.
-    // No se emite ningún token.
 }
 // OTHER END

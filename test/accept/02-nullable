@@ -1,4 +1,4 @@
 entity Name {
-    pk: integer !key,
-    value: integer?,
+    pk: int !key,
+    value: int?,
 }

@@ -4,18 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../backend/domain-specific/calculator.h"
 #include "../../backend/support/logger.h"
 
-/**
- * Implementación de "bison-actions.h".
- */
-
-/**
- * Esta función se ejecuta cada vez que se emite un error de sintaxis.
- */
 void yyerror(const char* string) {
-    LogErrorRaw("[ERROR] Mensaje: '%s', debido a '", string);
+    LogErrorRaw("[ERROR] Message: '%s', due to '", string);
     for (int i = 0; i < yyleng; ++i) {
         switch (yytext[i]) {
             case '\n':
@@ -24,7 +16,7 @@ void yyerror(const char* string) {
                 LogErrorRaw("%c", yytext[i]);
         }
     }
-    LogErrorRaw("' (length = %d, linea %d).\n\n", yyleng, yylineno);
+    LogErrorRaw("' (length = %d, line %d).\n\n", yyleng, yylineno);
 }
 
 const Object* getReference(ObjectList* list, const char symbol[NAMEDATALEN]) {
@@ -65,6 +57,26 @@ int checkLocalRedeclaration(AttributeList* list) {
     return 0;
 }
 
+int checkLinkRedeclaration(Link** links, int linkCount, AttributeList* attributes) {
+    switch (linkCount) {
+        case 1:
+            return getLocalReference(attributes, links[0]->name) != NULL;
+        case 2:
+            return strncmp(links[0]->name, links[1]->name, NAMEDATALEN) == 0
+                || getLocalReference(attributes, links[0]->name) != NULL
+                || getLocalReference(attributes, links[1]->name) != NULL;
+        case 3:
+            return strncmp(links[0]->name, links[1]->name, NAMEDATALEN) == 0
+                || strncmp(links[1]->name, links[2]->name, NAMEDATALEN) == 0
+                || strncmp(links[0]->name, links[2]->name, NAMEDATALEN) == 0
+                || getLocalReference(attributes, links[0]->name) != NULL
+                || getLocalReference(attributes, links[1]->name) != NULL
+                || getLocalReference(attributes, links[2]->name) != NULL;
+        default:
+            return 1;
+    }
+}
+
 int linkRelation(Program* program, Object* relation) {
     for (size_t i = 0; i < 3; i++) {
         Link* link = relation->linkedObjects[i];
@@ -88,8 +100,8 @@ int linkRelation(Program* program, Object* relation) {
     return 0;
 }
 
-boolean entityHasKey(Object* entity) {
-    AttributeList* node = entity->attributeList;
+boolean attributesContainKey(AttributeList* attributeList) {
+    AttributeList* node = attributeList;
     while (node != NULL) {
         if (node->attribute->modifier == KEY) {
             return true;
@@ -113,19 +125,24 @@ int Linker(Program* program) {
 
         // Check local duplicate symbol, search all items
         if (checkLocalRedeclaration(object->attributeList) != 0) {
+            LogError("[Linker] Duplicate attribute");
             return 2;
         }
 
         // Check entity has a key
         if (object->type == ENTITY) {
             LogDebug("[Linker] Found entity '%s'", object->name);
-            if (!entityHasKey(object)) {
+            if (!attributesContainKey(object->attributeList)) {
                 return 3;
             }
         }
 
         // Link relations
         if (object->type == RELATION) {
+            if (checkLinkRedeclaration(object->linkedObjects, object->linksCount, object->attributeList) != 0) {
+                LogError("[Linker] Duplicate attribute");
+                return 2;
+            }
             LogDebug("[Linker] Found relation '%s'", object->name);
             if (linkRelation(program, object) != 0) {
                 return 4;
@@ -138,12 +155,6 @@ int Linker(Program* program) {
     return 0;
 }
 
-/**
- * Esta acción se corresponde con el no-terminal que representa el símbolo
- * inicial de la gramática, y por ende, es el último en ser ejecutado, lo que
- * indica que efectivamente el programa de entrada se pudo generar con esta
- * gramática, o lo que es lo mismo, que el programa pertenece al lenguaje.
- */
 Program* ProgramGrammarAction(ObjectList* objectList) {
     LogDebug("[Bison] ProgramGrammarAction");
     Program* program = malloc(sizeof(Program));
@@ -180,13 +191,14 @@ Object* EntityGrammarAction(const char name[NAMEDATALEN], AttributeList* attribu
     return entity;
 }
 
-Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, AttributeList* attributes) {
+Object* RelationGrammarAction(const char name[NAMEDATALEN], Link** links, int linksCount, AttributeList* attributes) {
     LogDebug("[Bison] RelationGrammarAction(name='%s', [0]=%x, [1]=%x, [2]=%x)", name, links[0], links[1], links[2]);
     Object* relation = malloc(sizeof(Object));
     strncpy(relation->name, name, NAMEDATALEN);
     relation->type = RELATION;
     relation->attributeList = attributes;
     relation->linkedObjects = links;
+    relation->linksCount = linksCount;
     return relation;
 }
 
@@ -197,6 +209,16 @@ Attribute* AttributeGrammarAction(const char name[NAMEDATALEN], AttributeType ty
     strncpy(attribute->name, name, NAMEDATALEN);
     attribute->type = type;
     attribute->modifier = modifier;
+    return attribute;
+}
+
+Attribute* CompoundAttributeGrammarAction(const char name[NAMEDATALEN], AttributeList* attributes) {
+    LogDebug("[Bison] CompoundAttributeGrammarAction(name='%s')", name);
+
+    Attribute* attribute = malloc(sizeof(Attribute));
+    strncpy(attribute->name, name, NAMEDATALEN);
+    attribute->type = COMPOUND;
+    attribute->nested = attributes;
     return attribute;
 }
 
